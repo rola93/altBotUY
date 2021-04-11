@@ -16,8 +16,8 @@ The logic goes like follows:
      * if the tweet doesn't contain images, nothing is done
      * if the tweet contains images with at least one alt_text, then it is faved
      * if the tweet contains images without any alt_text, then the tweet is replied with a standard message: _Buenas! 
-     estaría bueno que usen textos alternativos (alt_text) para describir las imágenes 
-     y así ayudar a quienes no pueden verlas... Saludos!_ 
+     Estaría bueno que usen textos alternativos (alt_text) para describir las imágenes, y así hacerlos accesibles a 
+     quienes no pueden verlas... Saludos!_ 
      
 `altBot_main.py` module contains all logic to run this, all you need is to implement a main function
 to run all this, then its execution must be someway chroned, for instance with chron or chrontab in linux. 

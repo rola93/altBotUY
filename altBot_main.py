@@ -130,8 +130,8 @@ class AltBot:
                 # at least one of the images contains alt_text, let's like it
                 self.fav_tweet(tweet_id)
             else:
-                self.reply('Buenas! estaría bueno que usen textos alternativos (alt_text) para '
-                           'describir las imágenes y así ayudar a quienes no pueden verlas... Saludos!', tweet_id)
+                self.reply('Buenas! Estaría bueno que usen textos alternativos (alt_text) para '
+                           'describir las imágenes, y así hacerlos accesibles a quienes no pueden verlas... Saludos!', tweet_id)
 
     def process_accounts(self, screen_names: List[str]) -> None:
         """
