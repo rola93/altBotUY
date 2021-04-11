@@ -15,7 +15,8 @@ The logic goes like follows:
  * Each time a new twit is published, the bot reads it and check for images with alt_text
      * if the tweet doesn't contain images, nothing is done
      * if the tweet contains images with at least one alt_text, then it is faved
-     * if the tweet contains images without any alt_text, then the tweet is replied with a standard message: _Buenas! estaría bueno que usen textos alternativos (alt_text) para describir las imágenes 
+     * if the tweet contains images without any alt_text, then the tweet is replied with a standard message: _Buenas! 
+     estaría bueno que usen textos alternativos (alt_text) para describir las imágenes 
      y así ayudar a quienes no pueden verlas... Saludos!_ 
      
 `altBot_main.py` module contains all logic to run this, all you need is to implement a main function
@@ -34,3 +35,5 @@ to run all this, then its execution must be someway chroned, for instance with c
 
 Requirements can be installed with `pip install -r requirements.txt`, developed under python 3.7.7. 
  
+Also need to provide the appropiated credentials to connect with Twitter, defined in `settings.py`. The interaction with twitter is done throgth tweepy API. 
+[Here](https://realpython.com/twitter-bot-python-tweepy/#using-tweepy) you can find a complete tutorial on this API.
