@@ -1,5 +1,5 @@
 # altBot
-This is a twitter bot to promote the usage of alt_text to describe images in Twitter.
+[@AltBotUY](https://twitter.com/AltBotUY) is a twitter bot to promote the usage of alt_text to describe images in Twitter.
 
 [Alternative text (alt_text)](https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Accessibility/Alternative_text_for_images)
  is text associated with an image that serves the same purpose and conveys the same essential information as 
@@ -30,6 +30,7 @@ to run all this, then its execution must be someway chroned, for instance with c
  * OCR is only useful when images does contain plain text, however, it doesn't apply for general images, so before running OCR, a classiffier is needed to know if OCR worth.
  * Include a real database to account for already processed tweets
  * Add a service to OCR/auto generate caption for images when invoked
+ * Implement logging strategies 
  
 # Requirements
 
