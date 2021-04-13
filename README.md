@@ -5,7 +5,7 @@
  is text associated with an image that serves the same purpose and conveys the same essential information as 
  the image. In situations where the image is not available to the reader, perhaps because they have turned off 
  images in their web browser or are using a screen reader due to a visual impairment, the alternative text ensures 
- that no information or functionality is lost.
+ that no information or functionality is lost. [Here](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility) you can find an article from [@mili_costabel](https://twitter.com/mili_costabel) that perfectly describes how important are those alt_texts. 
 
 # Logic
 
@@ -38,3 +38,7 @@ Requirements can be installed with `pip install -r requirements.txt`, developed 
  
 Also need to provide the appropiated credentials to connect with Twitter, defined in `settings.py`. The interaction with twitter is done throgth tweepy API. 
 [Here](https://realpython.com/twitter-bot-python-tweepy/#using-tweepy) you can find a complete tutorial on this API.
+
+# Related work:
+
+[@ImageAltText](https://twitter.com/ImageAltText) and [@get_altText](https://twitter.com/get_altText) are both Twitter bots for Image captioning: once you call them from a tweet, they answer with their best effort image caption. However, both of them only work in English.
