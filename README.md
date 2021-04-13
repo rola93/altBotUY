@@ -5,7 +5,9 @@
  is text associated with an image that serves the same purpose and conveys the same essential information as 
  the image. In situations where the image is not available to the reader, perhaps because they have turned off 
  images in their web browser or are using a screen reader due to a visual impairment, the alternative text ensures 
- that no information or functionality is lost. [Here](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility) you can find an article from [@mili_costabel](https://twitter.com/mili_costabel) that perfectly describes how important are those alt_texts. 
+ that no information or functionality is lost. 
+ 
+ [Here](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility) you can find an article from [@mili_costabel](https://twitter.com/mili_costabel) that perfectly describes how important are those alt_texts. 
 
 # Logic
 
