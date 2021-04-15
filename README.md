@@ -43,4 +43,11 @@ Also need to provide the appropiated credentials to connect with Twitter, define
 
 # Related work:
 
-[@ImageAltText](https://twitter.com/ImageAltText) and [@get_altText](https://twitter.com/get_altText) are both Twitter bots for Image captioning: once you call them from a tweet, they answer with their best effort image caption. However, both of them only work in English.
+[@ImageAltText](https://twitter.com/ImageAltText) and [@get_altText](https://twitter.com/get_altText) are both Twitter 
+bots for Image captioning: once you call them from a tweet, they answer with their best effort image caption. 
+However, both of them only work in English.
+
+[@AltTxtReminder](https://twitter.com/AltTxtReminder) is another bot which just suggest the usage of alt_text when not
+ used. They also offer a service for their followers: suggest alt_text usage on DMs. Similarly, 
+ [@AltTextCrew](https://twitter.com/AltTextCrew) offer a similar service, which also provides a bot to inspect external 
+ links and report the usage of alt_text on those links
