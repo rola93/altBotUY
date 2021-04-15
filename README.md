@@ -11,28 +11,51 @@
 
 # Logic
 
-The logic goes like follows:
+Currently, the logic goes like follows:
 
- * Some Twitter accounts are configured to be followed. 
- * Each time a new twit is published, the bot reads it and check for images with alt_text
+ * Some Twitter accounts are configured to be followed, check in `settings.ACCOUNTS_TO_CHECK`. 
+ * Each time a new tweet is published, the bot reads it and checks for images with alt_text
      * if the tweet doesn't contain images, nothing is done
-     * if the tweet contains images with at least one alt_text, then it is faved
-     * if the tweet contains images without any alt_text, then the tweet is replied with a standard message: _Buenas! 
-     Estaría bueno que usen textos alternativos (alt_text) para describir las imágenes, y así hacerlos accesibles a 
-     quienes no pueden verlas... Saludos!_ 
+     * if the tweet contains images, and for all of them an alt_text is given , then it is faved
+     * if the tweet contains images without any alt_text, then the tweet is replied with a standard message: 
+     _"Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para 
+     describir todas sus imágenes..."_, defined in `settings.AUTO_REPLY_NO_ALT_TEXT`  
      
 `altBot_main.py` module contains all logic to run this, all you need is to implement a main function
 to run all this, then its execution must be someway chroned, for instance with chron or chrontab in linux. 
+
+You needalso to supply your tweeter credentials in `settings` module, read 
+[here](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials) how
+to do it. 
     
-# TODO:
- * Improve default message to a more friendly version avoiding the accounts from blocking the bot.
- * Add argparse to give parameters easier
- * Carefully test the alt_text detection logic, since some cases are failing (tweets with images without alt_text are not detected). Also test its logic with other media content (videos, gifs, links)
- * Add tesseract for OCR when alt_image is not provided, and reply with it instead of fixed message.
- * OCR is only useful when images does contain plain text, however, it doesn't apply for general images, so before running OCR, a classiffier is needed to know if OCR worth.
- * Include a real database to account for already processed tweets
- * Add a service to OCR/auto generate caption for images when invoked
- * Implement logging strategies 
+# TODO (prioritized):
+ * **IMPROVEMENT**: Read the following list and use this instead of the `settings.ACCOUNTS_TO_CHECK`
+ * **IMPROVEMENT**: crontab based local deploy, run it once a day
+ * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (50) are retrieved from tweeter for the configured accounts, 
+  then each of them is checked in our local database to see if it was already processed. This is inefficient. 
+  We only need to retrieve new tweets since last download to avoid duplicates.
+ * **USE CASE**: Add logs to track alt_text usage and later analise how it evolves
+ * **IMPROVEMENT**: Modify loggs format to include timestamp
+ * **IMPROVEMENT**: Web page, possibly as [github io page](https://pages.github.com/), in Spanish
+ * **IMPROVEMENT**: Tutorial on how to include alt_texts on images. Tweeter thread / page article, spanish
+ * **IMPROVEMENT**: Importance of alt_texts on images. Tweeter thread / page article, spanish
+ * **IMPROVEMENT**: Add a "terms of use" or privacy section thread/page
+ * **IMPROVEMENT**: Add an about the project section thread/page
+ * **IMPROVEMENT**: Add argparse to give parameters easier
+ * **IMPROVEMENT**: Include a real database to account for already processed tweets, dockerized if possible
+ * **IMPROVEMENT**: dockerize current solution
+ * **IMPROVEMENT**: improve deploy to be available all time, remotely hosted
+ * **USE CASE**: Add a service for followers to friendly remind them by DM instead of by public tweets
+ * **IMPROVEMENT**: Improve the manage of tweeter credentials
+ * **COMPLEMENT**: OCR module, based *probably* in tesseract, spanish output
+ * **COMPLEMENT**: image captioning module, spanish output. Initially migth be based on Azure: Caption module in 
+ English + translate, since spanish model is hard to obtain
+ * **USE CASE**: Add a service to OCR/auto generate caption for images when invoked
+ * **IMPROVEMENT**: A classifier is needed to know if OCR worth.
+ * **USE CASE**: Add tesseract for OCR when alt_image is not provided, and reply with it instead of fixed message.
+ * **USE CASE**: Add image captioning when alt_image is not provided, and reply with it instead of fixed message.
+ * **USE CASE**: Auto generate monthly report with top 5 alt_text users
+   
  
 # Requirements
 
