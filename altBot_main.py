@@ -3,7 +3,7 @@ import logging
 import time
 from datetime import timedelta
 
-from typing import List, Optional, Set, Union
+from typing import List, Optional, Set, Union, Iterable
 
 import tweepy
 
@@ -13,8 +13,8 @@ except Exception as e:
     print('settings_prod not found; running just with settings')
     from settings import CONSUMER_KEY, CONSUMER_SECRET, KEY, SECRET
 
-from settings import ACCOUNTS_TO_CHECK, AUTO_REPLY_NO_ALT_TEXT, PATH_TO_PROCESSED_TWEETS, LOG_LEVEL, \
-    LOG_FILENAME, LAST_N_TWEETS
+from settings import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, PATH_TO_PROCESSED_TWEETS, LOG_LEVEL, \
+    LOG_FILENAME, LAST_N_TWEETS, ALT_BOT_NAME
 
 
 class AltBot:
@@ -25,7 +25,7 @@ class AltBot:
         self.auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         self.auth.set_access_token(KEY, SECRET)
 
-        self.api = tweepy.API(self.auth)
+        self.api = tweepy.API(self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
         self.processed_tweets = set()  # type: Set[str]
         self.load_database()
 
@@ -35,6 +35,7 @@ class AltBot:
             logging.error(f'Exception: {e} on authentication', exc_info=True)
             raise Exception(f"Error during authentication: {e}")
 
+    # region: database management
     def load_database(self) -> None:
         """
         load database with the tweet ids that were processed
@@ -72,6 +73,43 @@ class AltBot:
         :return: None
         """
         return self.processed_tweets.add(tweet_id)
+
+    # endregion
+
+    # region: Tweeter API interaction
+    def get_followers(self, screen_name: str, kindly_sleep: float = 60) -> Iterable[str]:
+        """
+        Read the followers list for the screen_name user
+        :param screen_name: user to get its followers
+        :param kindly_sleep: time to sleep to prevent overloading the API, 15 requests in 15 minutes
+        :return: List of followers
+        """
+
+        for page in tweepy.Cursor(self.api.followers, screen_name=screen_name).pages():
+            start = time.time()
+            for p in page:
+                yield p.screen_name
+            # go to sleep some time to avoid being banned
+            time.sleep(max(kindly_sleep - (time.time() - start), 0))
+
+    def get_friends(self, screen_name: str, kindly_sleep: float = 60) -> Iterable[str]:
+        """
+        Read the users being followed for the screen_name user (i.e its friends)
+        :param screen_name: user to get its friends
+        :param kindly_sleep: time to sleep to prevent overloading the API, 15 requests in 15 minutes
+        :return: List of friends
+        """
+
+        result = []
+
+        for page in tweepy.Cursor(self.api.friends, screen_name=screen_name).pages():
+            start = time.time()
+            for p in page:
+                yield p.screen_name
+            # go to sleep some time to avoid being banned
+            time.sleep(max(kindly_sleep - (time.time() - start), 0))
+
+        return result
 
     def get_last_tweets_for_account(self, screen_name: str, n_tweets: int, include_rts: bool = False) -> List[str]:
 
@@ -111,6 +149,31 @@ class AltBot:
         )
         logging.debug(f'reply {tweet_id}; images without alt text')
 
+    def direct_message(self, message_to: str, msg: str) -> None:
+        """
+        send a direct message with the msg tex to the message_to user
+        :param message_to: user to recieve the DM
+        :param msg: message to be send, should contain less than 10k chars
+        :return: None
+        """
+
+        self.api.send_direct_message(message_to, msg)
+        logging.debug(f'Direct Message to {message_to}; images without alt text')
+
+    # endregion
+
+    # region: main logic
+
+    @staticmethod
+    def get_tweet_url(user_screen_name: str, tweet_id: str) -> str:
+        """
+        Return the public url corresponding to the given tweet
+        :param user_screen_name: screen name of the user who wrote the tweet
+        :param tweet_id: id of thetweet
+        :return: public url for the tweet
+        """
+        return f'https://twitter.com/{user_screen_name}/status/{tweet_id}'
+
     def get_alt_text(self, tweet_id: str) -> Optional[List[Union[str, None]]]:
         """
         This method gets back alt_text from the given tweet_id
@@ -126,7 +189,8 @@ class AltBot:
 
         if hasattr(status, 'extended_entities'):
             if len(status.extended_entities['media']) > 0:
-                result = [media['ext_alt_text'] for media in status.extended_entities['media'] if media['type'] == 'photo']
+                result = [media['ext_alt_text'] for media in status.extended_entities['media'] if
+                          media['type'] == 'photo']
                 logging.debug(f'Tweet {tweet_id} contains extended_entities and media: {result}.')
             else:
                 # This is a tweet without media, not sure if this can happen
@@ -139,9 +203,19 @@ class AltBot:
 
         return result
 
-    def process_account(self, screen_name: str):
+    def process_account(self, screen_name: str, follower: bool, n_tweets: int) -> None:
+        """
+        Process an account checking its last n_tweets:
+         - If all images in tweet contain alt_text, then it is faved
+         - If some images in tweet does not contain alt_text, then DM for followers reply for non-followers
+         - Otherwise ignore it
+        :param screen_name: account to be processed
+        :param follower: whether or not the screen_name account is a follower
+        :param n_tweets: number of tweetsto consider
+        :return: None
+        """
 
-        last_tweets = self.get_last_tweets_for_account(screen_name, LAST_N_TWEETS)
+        last_tweets = self.get_last_tweets_for_account(screen_name, n_tweets)
 
         for tweet_id in last_tweets:
 
@@ -150,26 +224,39 @@ class AltBot:
                     # skip the tweet since it was already processed
                     continue
 
-                logging.info(f'Processing tweet https://twitter.com/{screen_name}/status/{tweet_id}')
+                logging.info(f'Processing tweet {self.get_tweet_url(screen_name, tweet_id)}')
 
                 alt_texts = self.get_alt_text(tweet_id)
 
                 if alt_texts is None or not alt_texts:
                     # skip since the tweet does not contain images
                     logging.debug(f'This tweet is not interesting for us: '
-                                  f'https://twitter.com/{screen_name}/status/{tweet_id}')
+                                  f'{self.get_tweet_url(screen_name, tweet_id)}')
                     self.set_as_processed(tweet_id)
                     continue
 
                 if all(alt_texts):
                     # all of the images contains alt_text, let's like it
                     logging.debug(f'All images in tweet contain alt texts: '
-                                  f'https://twitter.com/{screen_name}/status/{tweet_id}')
+                                  f'{self.get_tweet_url(screen_name, tweet_id)}')
                     self.fav_tweet(tweet_id)
                 else:
-                    logging.debug(f'Some images in tweet does not contain alt texts: '
-                                  f'https://twitter.com/{screen_name}/status/{tweet_id}')
-                    self.reply(screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_id)
+                    # there are some images withut alt_text; alert message needed
+                    if follower:
+                        # if it is a follower,write a DM
+                        logging.debug(f'Some images in tweet does not contain alt texts: '
+                                      f'{self.get_tweet_url(screen_name, tweet_id)} | '
+                                      f'DM the user, this is a follower')
+                        self.direct_message(screen_name, AUTO_DM_NO_ALT_TEXT.format(self.get_tweet_url(screen_name,
+                                                                                                       tweet_id)))
+                        # TODO: what if DMs are not available? -> sendreply tweet
+
+                    else:
+                        # if it is a follower, write a DM
+                        logging.debug(f'Some images in tweet does not contain alt texts: '
+                                      f'{self.get_tweet_url(screen_name, tweet_id)} | '
+                                      f'reply the user, is not a follower')
+                        self.reply(screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_id)
 
                 self.set_as_processed(tweet_id)
 
@@ -177,25 +264,82 @@ class AltBot:
                 logging.error(f'Exception: {e} while processing tweet '
                               f'https://twitter.com/{screen_name}/status/{tweet_id}', exc_info=True)
 
-    def process_accounts(self, screen_names: List[str]) -> None:
+    def process_followers(self, screen_name: str) -> Set[str]:
         """
-        Process a batch of accounts
-        :param screen_names: list of tweeter accounts to be processed
+        Read all followers of screen_name and process each follower account with self.process_account, as followers
+        :param screen_name: name of the account to process its followers
+        :return: set of followers screen names
+        """
+        processed_followers = []
+
+        for follower_screen_name in self.get_followers(screen_name):
+            logging.info(f'Processing follower @{follower_screen_name}...')
+            self.process_account(follower_screen_name, follower=True, n_tweets=LAST_N_TWEETS)
+            self.dump_database()
+            processed_followers.append(follower_screen_name)
+
+        return set(processed_followers)
+
+    def process_friends(self, screen_name: str, followers: Set[str]) -> Set[str]:
+        """
+        Read all friends of screen_name and process each follower account with self.process_account, as non-followers.
+        If a friend is also a follower (given in the folowers set) then it is not processed.
+        :param screen_name: name of the account to process its friends
+        :param followers: set of followers for the screen_name account
+        :return: set of friends
+
+        """
+        processed_friends = []
+
+        for friend_screen_name in self.get_friends(screen_name):
+
+            if friend_screen_name in followers:
+                # this friend is also a follower, we can skip it
+                processed_friends.append(friend_screen_name)
+                continue
+
+            logging.info(f'Processing friend @{friend_screen_name}...')
+            self.process_account(friend_screen_name, follower=False, n_tweets=LAST_N_TWEETS)
+            self.dump_database()
+            processed_friends.append(friend_screen_name)
+
+        return set(processed_friends)
+
+    def watch_for_alt_text_usage(self) -> None:
+        """
+        Process all followers and friends of AltBotUY to check for alt_text usage:
+         - If all images in tweet contain alt_text, then it is faved
+         - If some images in tweet does not contain alt_text, then DM for followers reply for friends
+         - Otherwise ignore it
         :return: None
         """
-        for screen_name in screen_names:
-            logging.info(f'Processing @{screen_name}...')
-            self.process_account(screen_name)
-            self.dump_database()
+
+        followers = self.process_followers(ALT_BOT_NAME)
+        logging.info(f'{len(followers)} followers were processed')
+        friends = self.process_friends(ALT_BOT_NAME, followers)
+        logging.info(f'{len(friends)} friends were processed')
+
+    def main(self) -> None:
+        """
+        Main process for the AltBotUY
+        :return: None
+        """
+        self.watch_for_alt_text_usage()
+    # endregion
 
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME)
+    logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME+'dev')
 
     bot = AltBot()
-    start = time.time()
-    bot.process_accounts(ACCOUNTS_TO_CHECK)
-    took_seconds = time.time() - start
-
-    logging.info(f'Execution took {timedelta(seconds=took_seconds)}.')
+    logging.debug('===== FRIENDS =====')
+    for f in bot.get_friends('ro_laguna_'):
+        logging.debug(f)
+    logging.debug('===== FOLLOWERS =====')
+    for f in bot.get_followers('ro_laguna_'):
+        logging.debug(f)
+    # start = time.time()
+    # bot.process_accounts(ACCOUNTS_TO_CHECK)
+    # took_seconds = time.time() - start
+    # logging.info(f'Execution took {timedelta(seconds=took_seconds)}.')
