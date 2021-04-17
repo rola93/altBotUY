@@ -3,7 +3,7 @@ import logging
 import time
 from datetime import timedelta
 
-from typing import List, Optional, Set, Union, Iterable
+from typing import List, Optional, Set, Union, Iterable, Tuple
 
 import tweepy
 
@@ -27,6 +27,8 @@ class AltBot:
 
         self.api = tweepy.API(self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
         self.processed_tweets = set()  # type: Set[str]
+        self.friends = set()  # type: Set[str]
+        self.followers = set()  # type: Set[str]
         self.load_database()
 
         try:
@@ -34,6 +36,8 @@ class AltBot:
         except Exception as e:
             logging.error(f'Exception: {e} on authentication', exc_info=True)
             raise Exception(f"Error during authentication: {e}")
+
+        logging.info('AltBotUY is up and running...')
 
     # region: database management
     def load_database(self) -> None:
@@ -46,6 +50,8 @@ class AltBot:
             processed_tweets = json.load(f)
 
         self.processed_tweets = set(processed_tweets['tweets'])
+        self.friends = set(processed_tweets['friends'])
+        self.followers = set(processed_tweets['followers'])
 
     def dump_database(self) -> None:
         """
@@ -54,7 +60,9 @@ class AltBot:
         """
 
         with open(PATH_TO_PROCESSED_TWEETS, 'w') as f:
-            json.dump({'tweets': list(self.processed_tweets)}, f)
+            json.dump({'tweets': list(self.processed_tweets),
+                       'friends': list(self.friends),
+                       'followers': list(self.followers)}, f)
 
     def check_if_processed(self, tweet_id: str) -> bool:
         """
@@ -159,6 +167,16 @@ class AltBot:
 
         self.api.send_direct_message(message_to, msg)
         logging.debug(f'Direct Message to {message_to}; images without alt text')
+
+    def get_user_friends_and_followers_counts(self, screen_name: str) -> Tuple[int, int]:
+        """
+        Return the friends and followers count from the API for the screen_name user
+        :param screen_name: screen_name of the user to get its friends and followers
+        :return: pair of friends and followers number
+        """
+        user = self.api.get_user(screen_name)
+
+        return user.friends_count, user.followers_count
 
     # endregion
 
@@ -305,6 +323,44 @@ class AltBot:
 
         return set(processed_friends)
 
+    def update_local_friends(self):
+
+        real_friends = set([f for f in self.get_friends(ALT_BOT_NAME)])
+        new_friends = real_friends - self.friends
+        lost_friends = self.friends - real_friends
+        logging.info(f'New friends: {"; ".join(new_friends)}')
+        logging.info(f'Lost friends: {"; ".join(lost_friends)}')
+        logging.info(f'New friends: {len(new_friends)} Lost friends: {len(lost_friends)} '
+                     f'Win friends: {len(new_friends) - len(lost_friends)}')
+        self.friends = (self.friends - lost_friends).union(new_friends)
+        self.dump_database()
+
+    def update_local_followers(self):
+
+        real_followers = set([f for f in self.get_followers(ALT_BOT_NAME)])
+        new_followers = real_followers - self.followers
+        lost_followers = self.friends - real_followers
+
+        logging.info(f'New followers: {"; ".join(new_followers)}')
+        logging.info(f'Lost followers: {"; ".join(lost_followers)}')
+        logging.info(f'New followers: {len(new_followers)} Lost followers: {len(lost_followers)} '
+                     f'Win followers: {len(new_followers) - len(lost_followers)}')
+
+        self.followers = (self.followers - lost_followers).union(new_followers)
+        self.dump_database()
+
+    def update_friends_and_followers_if_needed(self):
+
+        n_friends, n_followers = self.get_user_friends_and_followers_counts(ALT_BOT_NAME)
+
+        if n_friends != len(self.friends):
+            logging.info(f'There is a change on friends {len(self.friends)} -> {n_friends}, update them')
+            self.update_local_friends()
+
+        if n_followers != len(self.followers):
+            logging.info(f'There is a change on followers {len(self.followers)} -> {n_followers}, update them')
+            self.update_local_followers()
+
     def watch_for_alt_text_usage(self) -> None:
         """
         Process all followers and friends of AltBotUY to check for alt_text usage:
@@ -330,16 +386,24 @@ class AltBot:
 
 if __name__ == '__main__':
 
+    start = time.time()
+
     logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME+'dev')
 
     bot = AltBot()
-    logging.debug('===== FRIENDS =====')
-    for f in bot.get_friends('ro_laguna_'):
-        logging.debug(f)
-    logging.debug('===== FOLLOWERS =====')
-    for f in bot.get_followers('ro_laguna_'):
-        logging.debug(f)
-    # start = time.time()
-    # bot.process_accounts(ACCOUNTS_TO_CHECK)
+    bot.update_friends_and_followers_if_needed()
+
+
+    #
+    # logging.debug('===== FRIENDS =====')
+    #
+    # for i, f in enumerate(bot.get_friends('ro_laguna_')):
+    #     logging.debug(f'Friend {i}: {f}')
+    #
+    # logging.debug('===== FOLLOWERS =====')
+    # for i, f in enumerate(bot.get_followers('ro_laguna_')):
+    #     logging.debug(f'Follower {i}: {f}')
+    # # start = time.time()
+    # # bot.process_accounts(ACCOUNTS_TO_CHECK)
     # took_seconds = time.time() - start
     # logging.info(f'Execution took {timedelta(seconds=took_seconds)}.')
