@@ -47,6 +47,9 @@ to do it.
 
 # What is new?
 
+## V0.1
+Initial version: check for some hardcoded accounts only
+
 ## V0.2
  *  Usage of alt_text is now checked for both: followers and friends. Friends are reply publicly while for followers a 
  DM is sent if possible, other wise a public tweet inviting them to DM the bot
