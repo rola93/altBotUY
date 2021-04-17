@@ -49,7 +49,7 @@ to do it.
 
 ## V0.2
  *  Usage of alt_text is now checked for both: followers and friends. Friends are reply publicly while for followers a 
- DM is sent if possible, other wise a public tweet invting them to DM the bot
+ DM is sent if possible, other wise a public tweet inviting them to DM the bot
  * Current version add timestamp to log file
  * Messages are are now defined in `bot_messages.py` module, and include a link to a tutorial on how to add alt_text 
  to images.  
@@ -62,6 +62,9 @@ to do it.
   then each of them is checked in our local database to see if it was already processed. This is inefficient. 
   We only need to retrieve new tweets since last download to avoid duplicates.
  * **USE CASE**: Add logs to track alt_text usage and later analise how it evolves
+ * **IMPROVEMENT**: Include a real database to account for already processed tweets, dockerized if possible
+ * **IMPROVEMENT**: Add DataBase management module
+ * **IMPROVEMENT**: Add Tweeter API management module
  * ~~**IMPROVEMENT**: Modify loggs format to include timestamp~~
  * **IMPROVEMENT**: Web page, possibly as [github io page](https://pages.github.com/), in Spanish
  * **IMPROVEMENT**: Tutorial on how to include alt_texts on images. Tweeter thread / page article, spanish
@@ -69,7 +72,6 @@ to do it.
  * **IMPROVEMENT**: Add a "terms of use" or privacy section thread/page
  * **IMPROVEMENT**: Add an about the project section thread/page
  * **IMPROVEMENT**: Add argparse to give parameters easier
- * **IMPROVEMENT**: Include a real database to account for already processed tweets, dockerized if possible
  * **IMPROVEMENT**: dockerize current solution
  * **IMPROVEMENT**: improve deploy to be available all time, remotely hosted
  * ~~**USE CASE**: Add a service for followers to friendly remind them by DM instead of by public tweets~~
@@ -82,7 +84,6 @@ to do it.
  * **USE CASE**: Add tesseract for OCR when alt_image is not provided, and reply with it instead of fixed message.
  * **USE CASE**: Add image captioning when alt_image is not provided, and reply with it instead of fixed message.
  * **USE CASE**: Auto generate monthly report with top 5 alt_text users
-
 
 Feel free to tackle any of those or even add new ones!
  
