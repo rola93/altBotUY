@@ -45,12 +45,15 @@ You needalso to supply your tweeter credentials in `settings` module, read
 [here](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials) how
 to do it.
 
-# What is new?
+# Change log
+This section summarizes the differences and improvements from version to version. Notice that not all of them are 
+currently in production (prod branch). Some of them are closed issues in master, waiting to be released
 
-## V0.1
-Initial version: check for some hardcoded accounts only
+## V1.0.
+[prod] Initial version: check for some hardcoded accounts only and reply them publicly if alt_text is not used.
 
-## V0.2
+## V1.1
+[master] Those changes are not in production yet. A database is first needed to make it robust enough.
  *  Usage of alt_text is now checked for both: followers and friends. Friends are reply publicly while for followers a 
  DM is sent if possible, other wise a public tweet inviting them to DM the bot
  * Current version add timestamp to log file
