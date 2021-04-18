@@ -12,7 +12,6 @@ MAX_RECONNECTION_ATTEMPTS = 5
 
 ALT_BOT_NAME = 'AltBotUY'
 
-ACCOUNTS_TO_CHECK = ['ro_laguna_', 'raulsperoni', 'mili_costabel', 'bryant1410']
 LAST_N_TWEETS = 10
 
 LOG_LEVEL = logging.DEBUG
