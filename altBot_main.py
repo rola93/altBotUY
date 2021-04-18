@@ -279,7 +279,7 @@ class AltBot:
                 Consider a single tweet may contain up to 4 images and each of them can not contain an alt_text.
         """
 
-        status = self.api.get_status(tweet_id, include_ext_alt_text=True, include_entities=True)
+        status = self.api.get_status(tweet_id, include_ext_alt_text=True, include_entities=True, tweet_mode="extended")
 
         if hasattr(status, 'extended_entities'):
             if len(status.extended_entities['media']) > 0:
@@ -510,16 +510,18 @@ if __name__ == '__main__':
 
     bot = AltBot(live=False)
 
-    try:
-        logging.debug(f'Running bot with args {args}')
-        bot.main(update_users=args.update_users, msg_to_followers=args.message,
-                 watch_for_alt_text_usage=args.watch_alt_texts)
-    except Exception as e:
-        error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
-        logging.critical(error_msg)
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
-
-    took_seconds = time.time() - start
-
-    logging.info(f'Execution ended, took {timedelta(seconds=took_seconds)}.')
+    bot.get_alt_text('1383120257565474816')
+    #
+    # try:
+    #     logging.debug(f'Running bot with args {args}')
+    #     bot.main(update_users=args.update_users, msg_to_followers=args.message,
+    #              watch_for_alt_text_usage=args.watch_alt_texts)
+    # except Exception as e:
+    #     error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
+    #     logging.critical(error_msg)
+    #     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #     bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
+    #
+    # took_seconds = time.time() - start
+    #
+    # logging.info(f'Execution ended, took {timedelta(seconds=took_seconds)}.')
