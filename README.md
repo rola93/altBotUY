@@ -141,3 +141,6 @@ However, both of them only work in English.
  used. They also offer a service for their followers: suggest alt_text usage on DMs. Similarly, 
  [@AltTextCrew](https://twitter.com/AltTextCrew) offer a similar service, which also provides a bot to inspect external 
  links and report the usage of alt_text on those links
+
+
+For moreinformation, visit [technical readme](technical-readme.md)
