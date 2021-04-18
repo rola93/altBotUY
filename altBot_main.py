@@ -1,11 +1,14 @@
-import json
+import argparse
 import logging
+import os
 import time
-from datetime import timedelta
-
-from typing import List, Optional, Set, Union, Iterable, Tuple
+from datetime import timedelta, datetime
+from typing import List, Optional, Set, Union, Tuple
 
 import tweepy
+
+from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT
+from data_access_layer.data_access import DBAccess
 
 try:
     from settings_prod import CONSUMER_KEY, CONSUMER_SECRET, KEY, SECRET
@@ -13,9 +16,8 @@ except Exception as e:
     print('settings_prod not found; running just with settings')
     from settings import CONSUMER_KEY, CONSUMER_SECRET, KEY, SECRET
 
-from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT
-from settings import PATH_TO_PROCESSED_TWEETS, LOG_LEVEL, \
-    LOG_FILENAME, LAST_N_TWEETS, ALT_BOT_NAME, MAX_RECONNECTION_ATTEMPTS
+from settings import LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, ALT_BOT_NAME, MAX_RECONNECTION_ATTEMPTS, \
+    MAINTEINER_NAME, MAINTAEINER_ID
 
 
 class AltBot:
@@ -32,54 +34,13 @@ class AltBot:
         self.live = live
 
         self.processed_tweets = set()  # type: Set[str]
-        self.load_database()
+        self.db = DBAccess()
 
         self.api = None  # type: tweepy.API
         self.alt_bot_user = None  # type: tweepy.models.User
 
         self.connect_api()
         self.load_alt_bot_user()
-
-    # region: database management
-    def load_database(self) -> None:
-        """
-        load database with the tweet ids that were processed
-        :return: None
-        """
-
-        with open(PATH_TO_PROCESSED_TWEETS, 'r') as f:
-            processed_tweets = json.load(f)
-
-        self.processed_tweets = set(processed_tweets['tweets'])
-
-    def dump_database(self) -> None:
-        """
-        dump database to save the tweet ids that were processed
-        :return: None
-        """
-
-        with open(PATH_TO_PROCESSED_TWEETS, 'w') as f:
-            json.dump({'tweets': list(self.processed_tweets)}, f)
-
-    def check_if_processed(self, tweet_id: str) -> bool:
-        """
-        Given a tweet id, checks whether or not it was processed.
-        This is to avoid duplicates of the same tweet being processed multiple times
-        :param tweet_id: id of the tweet to
-        :return: True iff the tweet was already processed
-        """
-        return tweet_id in self.processed_tweets
-
-    def set_as_processed(self, tweet_id: str) -> None:
-        """
-        Given a tweet id, set the tweet as processed.
-        This is to avoid duplicates of the same tweet being processed multiple times
-        :param tweet_id: id of the tweet to
-        :return: None
-        """
-        return self.processed_tweets.add(tweet_id)
-
-    # endregion
 
     # region: Tweeter API interaction
     def connect_api(self) -> None:
@@ -99,9 +60,9 @@ class AltBot:
                 i += 1
 
         if i >= MAX_RECONNECTION_ATTEMPTS:
-            msj = f'[{i}/{MAX_RECONNECTION_ATTEMPTS}] Can not connect.'
-            logging.error(msj)
-            raise Exception(msj)
+            msg = f'[{i}/{MAX_RECONNECTION_ATTEMPTS}] Can not connect.'
+            logging.error(msg)
+            raise Exception(msg)
         logging.info('Connected to Tweeter API')
 
     def load_alt_bot_user(self):
@@ -112,36 +73,40 @@ class AltBot:
 
         logging.info('Credentials are ok.')
 
-    def get_followers(self, screen_name: str, kindly_sleep: float = 60) -> Iterable[Tuple[str, int]]:
+    def get_followers_from_api(self, screen_name: str, kindly_sleep: float = 60) -> Set[Tuple[str, int]]:
         """
         Read the followers list for the screen_name user
         :param screen_name: user to get its followers
         :param kindly_sleep: time to sleep to prevent overloading the API, 15 requests in 15 minutes
         :return: yields pair of  (screen_name, id)
         """
-        for page in tweepy.Cursor(self.api.followers, screen_name=screen_name, count=500).pages():
-            start = time.time()
-            for p in page:
-                yield p.screen_name, p.id
-            # go to sleep some time to avoid being banned
-            time.sleep(max(kindly_sleep - (time.time() - start), 0))
+        result = set()  # type: Set[Tuple[str, int]]
 
-    def get_friends(self, screen_name: str, kindly_sleep: float = 60) -> Iterable[Tuple[str, int]]:
+        for page in tweepy.Cursor(self.api.followers, screen_name=screen_name, count=500).pages():
+            begin = time.time()
+            for p in page:
+                result.add((p.screen_name, p.id))
+            # go to sleep some time to avoid being banned
+            time.sleep(max(kindly_sleep - (time.time() - begin), 0))
+
+        return result
+
+    def get_friends_from_api(self, screen_name: str, kindly_sleep: float = 60) -> Set[Tuple[str, int]]:
         """
         Read the users being followed for the screen_name user (i.e its friends)
         :param screen_name: user to get its friends
         :param kindly_sleep: time to sleep to prevent overloading the API, 15 requests in 15 minutes
-        :return: yields pair of  (screen_name, id)
+        :return: set of pairs (screen_name, id)
         """
 
-        result = []
+        result = set()  # type: Set[Tuple[str, int]]
 
         for page in tweepy.Cursor(self.api.friends, screen_name=screen_name, count=500).pages():
-            start = time.time()
+            begin = time.time()
             for p in page:
-                yield p.screen_name, p.id
+                result.add((p.screen_name, p.id))
             # go to sleep some time to avoid being banned
-            time.sleep(max(kindly_sleep - (time.time() - start), 0))
+            time.sleep(max(kindly_sleep - (time.time() - begin), 0))
 
         return result
 
@@ -166,8 +131,9 @@ class AltBot:
 
             tweets_ids = [tweet.id_str for tweet in results]
         except tweepy.error.TweepError as tpe:
-            # TODO: why? what should we do?
             logging.error(f'can not extract tweets for {screen_name}: {tpe}')
+            # start to follow it trying to unlock if user accepts
+            self.follow_user(screen_name)
             tweets_ids = []
 
         return tweets_ids
@@ -227,9 +193,70 @@ class AltBot:
 
         return ret
 
+    def follow_user(self, screen_name):
+        try:
+            if self.live:
+                self.api.create_friendship(screen_name)
+            logging.debug(f'Now following {screen_name}')
+
+        except tweepy.error.TweepError as tw_error:
+            logging.error(f'Can not follow user {screen_name}: {tw_error}')
+
     # endregion
 
     # region: main logic
+
+    def update_followers_if_needed(self, needed: bool) -> None:
+        """
+        Update local list of followers if needed or #localFollowers != #realFollowers
+        :param needed: Update the followers local list, no matter if is the same as in real Tweeter
+        :return: None
+        """
+        n_local_followers = self.db.count_followers()
+        n_real_followers = self.alt_bot_user.followers_count
+
+        logging.info(f'Locally have {n_local_followers} followers currently they are {n_real_followers}. '
+                     f'Needed = {needed}')
+
+        if n_local_followers != n_real_followers or needed:
+            local_followers = self.db.get_followers()
+            logging.info(f'Updating local followers...')
+            # need to update
+            real_followers = self.get_followers_from_api(ALT_BOT_NAME)
+            new_followers = real_followers - local_followers
+            lost_followers = local_followers - real_followers
+
+            logging.info(f'New followers: {"; ".join([f[0] for f in new_followers])}')
+            logging.info(f'Lost followers: {"; ".join([f[0] for f in lost_followers])}')
+            logging.info(f'New followers: {len(new_followers)} Lost followers: {len(lost_followers)} '
+                         f'Win followers: {len(new_followers) - len(lost_followers)}')
+            self.db.update_followers(new_followers, lost_followers)
+
+    def update_friends_if_needed(self, needed: bool) -> None:
+        """
+        Update local list of followers if needed or #localFollowers != #realFollowers
+        :param needed: Update the followers local list, no matter if is the same as in real Tweeter
+        :return: None
+        """
+        n_local_friends = self.db.count_friends()
+        n_real_friends = self.alt_bot_user.friends_count
+
+        logging.info(f'Locally have {n_local_friends} friends currently they are {n_real_friends}. '
+                     f'Needed = {needed}')
+
+        if n_local_friends != n_real_friends or needed:
+            local_friends = self.db.get_friends()
+            logging.info(f'Updating local followers...')
+            # need to update
+            real_friends = self.get_friends_from_api(ALT_BOT_NAME)
+            new_friends = real_friends - local_friends
+            lost_friends = local_friends - real_friends
+
+            logging.info(f'New friends: {"; ".join([f[0] for f in new_friends])}')
+            logging.info(f'Lost friends: {"; ".join([f[0] for f in lost_friends])}')
+            logging.info(f'New friends: {len(new_friends)} Lost friends: {len(lost_friends)} '
+                         f'Win friends: {len(new_friends) - len(lost_friends)}')
+            self.db.update_friends(new_friends, lost_friends)
 
     @staticmethod
     def get_tweet_url(user_screen_name: str, tweet_id: str) -> str:
@@ -300,7 +327,7 @@ class AltBot:
         for tweet_id in last_tweets:
 
             try:
-                if self.check_if_processed(tweet_id):
+                if self.db.tweet_was_processed(tweet_id):
                     # skip the tweet since it was already processed
                     continue
 
@@ -312,7 +339,7 @@ class AltBot:
                     # skip since the tweet does not contain images
                     logging.debug(f'This tweet is not interesting for us: '
                                   f'{self.get_tweet_url(screen_name, tweet_id)}')
-                    self.set_as_processed(tweet_id)
+                    self.db.save_processed_tweet(tweet_id)
                     continue
 
                 alt_text_score = self.compute_alt_text_score(alt_texts)
@@ -342,24 +369,22 @@ class AltBot:
                                       f'reply the user, is not a follower')
                         self.reply(screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_id)
 
-                self.set_as_processed(tweet_id)
+                self.db.save_processed_tweet(tweet_id)
+                self.db.save_processed_tweet_with_with_alt_text_info(screen_name, user_id, tweet_id, len(alt_texts),
+                                                                     alt_text_score, follower, not follower)
 
             except Exception as e:
                 logging.error(f'Exception: {e} while processing tweet '
                               f'https://twitter.com/{screen_name}/status/{tweet_id}', exc_info=True)
 
-    def process_followers(self, screen_name: str) -> Set[str]:
+    def process_followers(self, followers: Set[Tuple[str, int]]) -> None:
         """
-        Read all followers of screen_name and process each follower account with self.process_account, as followers
-        :param screen_name: name of the account to process its followers
-        :return: set of followers screen names
+        Process each follower account in followers set with self.process_account, as followers
+        :param followers: set of followers to be processed
+        :return: None
         """
-        processed_followers = []
 
-        logging.info(f'Extracting followers from @{screen_name}')
-        followers = [follower for follower in self.get_followers(screen_name)]  # type: List[Tuple[str, int]]
         n_followers = len(followers)
-        logging.info(f'{n_followers} followers extracted for @{screen_name}')
 
         for i, (follower_screen_name, follower_id) in enumerate(followers):
 
@@ -370,32 +395,23 @@ class AltBot:
             except Exception as e:
                 logging.error(f'Error while processing follower: {follower_screen_name}:\n{e}')
                 continue
-            self.dump_database()
-            processed_followers.append(follower_screen_name)
 
-        return set(processed_followers)
-
-    def process_friends(self, screen_name: str, followers: Set[str]) -> Set[str]:
+    def process_friends(self, friends: Set[Tuple[str, int]], followers: Set[Tuple[str, int]]) -> None:
         """
-        Read all friends of screen_name and process each follower account with self.process_account, as non-followers.
-        If a friend is also a follower (given in the folowers set) then it is not processed.
-        :param screen_name: name of the account to process its friends
-        :param followers: set of followers for the screen_name account
-        :return: set of friends
+        Process each friend account in friends set with self.process_account, as friends if they are not in
+        followers set, otherwise skip their processing
+        :param friends: set of friends
+        :param followers: set of followers
+        :return: None
 
         """
-        processed_friends = []
-
-        logging.info(f'Extracting friends from @{screen_name}')
-        friends = [friend for friend in self.get_friends(screen_name)]  # type: List[Tuple[str, int]]
+        followers_ids = {f[1] for f in followers}  # type: Set[int]
         n_friends = len(friends)
-        logging.info(f'{n_friends} friends extracted for @{screen_name}')
 
         for i, (friend_screen_name, friend_id) in enumerate(friends):
 
-            if friend_screen_name in followers:
+            if friend_id in followers_ids:
                 # this friend is also a follower, we can skip it
-                processed_friends.append(friend_screen_name)
                 continue
 
             logging.info(f'[{i}/{n_friends}] Processing friend @{friend_screen_name}...')
@@ -406,11 +422,6 @@ class AltBot:
                 logging.error(f'Error while processing follower: {friend_screen_name}:\n{e}')
                 continue
 
-            self.dump_database()
-            processed_friends.append(friend_screen_name)
-
-        return set(processed_friends)
-
     def watch_for_alt_text_usage(self) -> None:
         """
         Process all followers and friends of AltBotUY to check for alt_text usage:
@@ -420,36 +431,95 @@ class AltBot:
         :return: None
         """
 
-        followers = self.process_followers(ALT_BOT_NAME)
+        self.update_users_if_needed(False)
+        followers = self.db.get_followers()
+        self.process_followers(followers)
         logging.info(f'{len(followers)} followers were processed')
-        friends = self.process_friends(ALT_BOT_NAME, followers)
+        friends = self.db.get_friends()
+        self.process_friends(friends, followers)
         logging.info(f'{len(friends)} friends were processed')
 
-    def main(self) -> None:
+    def send_message_to_all_followers(self, msg: str) -> None:
+        """
+        Send a DM to every follower
+        :param msg: string message to the followers or path to the file containing the message
+        :return: None
+        """
+        if os.path.isfile(msg):
+            logging.info(f'Reading message from file {msg}')
+            with open(msg, 'r') as f:
+                msg = f.read()
+            logging.info(f'Read message: {msg}')
+
+        followers = self.db.get_followers()
+        msg_sent = 0
+
+        for follower_screen_name, follower_id in followers:
+            if self.direct_message(follower_screen_name, follower_id, msg) == 0:
+                msg_sent += 1
+            else:
+                logging.info(f'Can not write DM to {follower_screen_name}')
+
+        logging.info(f'{msg_sent}/{len(followers)} messages sent')
+
+    def update_users_if_needed(self, needed: bool) -> None:
+        """
+        Update boh, friends and followers
+        :param needed: True to Update the users (followers and friends) local list,
+        no matter if is the same as in real Tweeter, otherwise only update when local and twitter number differ
+        :return: None
+        """
+        logging.info('Updating followers if needed')
+        self.update_followers_if_needed(needed)
+        logging.info('Updating friends if needed')
+        self.update_friends_if_needed(needed)
+
+    def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage: bool) -> None:
         """
         Main process for the AltBotUY
         :return: None
         """
-        self.watch_for_alt_text_usage()
+        if update_users:
+            self.update_users_if_needed(True)
+        if watch_for_alt_text_usage:
+            logging.info('Watching for alt_text usage')
+            self.watch_for_alt_text_usage()
+        if msg_to_followers:
+            logging.info(f'Sending message to all followers: {msg_to_followers}')
+            self.send_message_to_all_followers(msg_to_followers)
     # endregion
 
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME+'dev',
+    logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%y-%m-%d %H:%M:%S'
                         )
 
-    bot = AltBot(live=False)
+    parser = argparse.ArgumentParser(description="This script runs AltBotUY.")
+    parser.add_argument("-u", "--update-users", help="Update the local list of followers and friends",
+                        action="store_true")
+    parser.add_argument("-w", "--watch-alt-texts", help="Run the watch-alt-text use case",
+                        action="store_true")
+    parser.add_argument("-m", "--message", help="Send given message to followers. Can also be the path to a text file "
+                                                "containing the message", default=None, type=str)
+    args = parser.parse_args()
 
     start = time.time()
-    bot.main()
+
+    bot = AltBot(live=False)
+
+    try:
+        logging.debug(f'Running bot with args {args}')
+        bot.main(update_users=args.update_users, msg_to_followers=args.message,
+                 watch_for_alt_text_usage=args.watch_alt_texts)
+    except Exception as e:
+        error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
+        logging.critical(error_msg)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
+
     took_seconds = time.time() - start
 
-    msj = f'Execution ended, took {timedelta(seconds=took_seconds)}.'
-    logging.info(msj)
-
-    ro_id = 537304416
-
-    bot.direct_message('ro_laguna_', ro_id, msj)
+    logging.info(f'Execution ended, took {timedelta(seconds=took_seconds)}.')

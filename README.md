@@ -13,8 +13,9 @@
 
 Currently, the logic goes like follows:
 
- * Some Twitter accounts are configured to be followed, check in `settings.ACCOUNTS_TO_CHECK`. 
- * Each time a new tweet is published and the bot reads it, checks for images with alt_text
+ * Some Twitter accounts are followed by the bot (friends) and some tweeter users follow the bot (followers). 
+ * Periodically, the bot checks for new tweets from both, friends or followers, and checks its last tweets 
+ for images with alt_text
      * if the tweet doesn't contain images, nothing is done
      * if the tweet contains images, and for all of them an alt_text is given, then it is faved
      * if the tweet contains images without any alt_text, then it depends if it is a Follower or a Friend:
@@ -59,28 +60,36 @@ currently in production (prod branch). Some of them are closed issues in master,
  * Current version add timestamp to log file
  * Messages are are now defined in `bot_messages.py` module, and include a link to a tutorial on how to add alt_text 
  to images.  
+ 
+ ## V1.2
+[master] Those changes are to put into production next Monday 19th April, after notifying followers with a DM on changes.
+ * Add a SQLITE database to save processed tweets, followers and friends, making the bot far more efficient  
+ * Follow users with private content when tweets can not be read
+ * Send DM to maintainer in case of unexpected error
+ * Include arg parse to run the bot easier with different use cases
+ * Implement broadcast message to followers to share news on the bot
     
 # ROAD MAP (prioritized):
  * ~~**IMPROVEMENT**: Read the following list and use this instead of the `settings.ACCOUNTS_TO_CHECK`.~~
  * ~~**IMPROVEMENT**: crontab based local deploy, run it once a day~~
- * **IMPROVEMENT**: Follow back followers whose tweets can't be read.
+ * ~~**IMPROVEMENT**: Follow back followers whose tweets can't be read.~~
  * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (10) are retrieved from tweeter for the configured accounts, 
   then each of them is checked in our local database to see if it was already processed. This is inefficient. 
   We only need to retrieve new tweets since last download to avoid duplicates.
- * **USE CASE**: Add logs to track alt_text usage and later analise how it evolves
- * **IMPROVEMENT**: Include a real database to account for already processed tweets, dockerized if possible
- * **IMPROVEMENT**: Add DataBase management module
- * **IMPROVEMENT**: Add Tweeter API management module
+ * ~~**USE CASE**: Add logs to track alt_text usage and later analise how it evolves~~
+ * ~~**IMPROVEMENT**: Include a real database to account for already processed tweets, dockerized if possible~~
+ * ~~**IMPROVEMENT**: Add DataBase management module~~
  * ~~**IMPROVEMENT**: Modify loggs format to include timestamp~~
+ * ~~**IMPROVEMENT**: Add argparse to give parameters easier~~
+ * ~~**USE CASE**: Add a service for followers to friendly remind them by DM instead of by public tweets~~
  * **IMPROVEMENT**: Web page, possibly as [github io page](https://pages.github.com/), in Spanish
+ * **IMPROVEMENT**: Add Tweeter API management module (current is too coupled)
  * **IMPROVEMENT**: Tutorial on how to include alt_texts on images. Tweeter thread / page article, spanish
  * **IMPROVEMENT**: Importance of alt_texts on images. Tweeter thread / page article, spanish
  * **IMPROVEMENT**: Add a "terms of use" or privacy section thread/page
  * **IMPROVEMENT**: Add an about the project section thread/page
- * **IMPROVEMENT**: Add argparse to give parameters easier
  * **IMPROVEMENT**: dockerize current solution
  * **IMPROVEMENT**: improve deploy to be available all time, remotely hosted
- * ~~**USE CASE**: Add a service for followers to friendly remind them by DM instead of by public tweets~~
  * **IMPROVEMENT**: Improve the manage of tweeter credentials
  * **COMPLEMENT**: OCR module, based *probably* in tesseract, spanish output
  * **COMPLEMENT**: image captioning module, spanish output. Initially migth be based on Azure: Caption module in 
@@ -100,6 +109,27 @@ Requirements can be installed with `pip install -r requirements.txt`, developed 
  
 Also need to provide the appropiated credentials to connect with Twitter, defined in `settings.py`. The interaction with twitter is done throgth tweepy API. 
 [Here](https://realpython.com/twitter-bot-python-tweepy/#using-tweepy) you can find a complete tutorial on this API.
+
+## running the bot
+
+Information on how to run can be checked with `help` command, as follows:
+
+```.env
+$  python altBot_main.py --help                                                                                                                                         3643  17:14:03  
+usage: altBot_main.py [-h] [-u] [-w] [-m MESSAGE]
+
+This script runs AltBotUY.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u, --update-users    Update the local list of followers and friends
+  -w, --watch-alt-texts
+                        Run the watch-alt-text use case
+  -m MESSAGE, --message MESSAGE
+                        Send given message to followers. Can also be the path
+                        to a text file containing the message
+
+```
 
 # Related work:
 

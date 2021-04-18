@@ -130,3 +130,4 @@ dmypy.json
 
 .idea/
 settings_prod.py
+data_access_layer/.alt_bot_data.db
