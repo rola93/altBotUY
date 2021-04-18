@@ -510,18 +510,16 @@ if __name__ == '__main__':
 
     bot = AltBot(live=False)
 
-    bot.get_alt_text('1383120257565474816')
-    #
-    # try:
-    #     logging.debug(f'Running bot with args {args}')
-    #     bot.main(update_users=args.update_users, msg_to_followers=args.message,
-    #              watch_for_alt_text_usage=args.watch_alt_texts)
-    # except Exception as e:
-    #     error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
-    #     logging.critical(error_msg)
-    #     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #     bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
-    #
-    # took_seconds = time.time() - start
-    #
-    # logging.info(f'Execution ended, took {timedelta(seconds=took_seconds)}.')
+    try:
+        logging.debug(f'Running bot with args {args}')
+        bot.main(update_users=args.update_users, msg_to_followers=args.message,
+                 watch_for_alt_text_usage=args.watch_alt_texts)
+    except Exception as e:
+        error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
+        logging.critical(error_msg)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
+
+    took_seconds = time.time() - start
+
+    logging.info(f'Execution ended, took {timedelta(seconds=took_seconds)}.')
