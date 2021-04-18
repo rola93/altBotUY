@@ -12,9 +12,13 @@ MAX_RECONNECTION_ATTEMPTS = 5
 
 ALT_BOT_NAME = 'AltBotUY'
 
-ACCOUNTS_TO_CHECK = ['ro_laguna_', 'raulsperoni', 'mili_costabel', 'bryant1410']
 LAST_N_TWEETS = 10
 
-PATH_TO_PROCESSED_TWEETS = 'processed_tweets.json'
 LOG_LEVEL = logging.DEBUG
 LOG_FILENAME = 'log/alt-bot-logs.log'
+
+DB_FILE = 'data_access_layer/.alt_bot_data.db'
+
+# credentials to send DM to mantainer, only for unexpected exceptions
+MAINTEINER_NAME = 'ro_laguna_'
+MAINTAEINER_ID = 537304416
