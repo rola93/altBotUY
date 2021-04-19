@@ -1,1 +1,0 @@
-this page contains more technical readme
