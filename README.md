@@ -1,15 +1,15 @@
 # AltBotUY
 
 [@AltBotUY](https://twitter.com/AltBotUY) es un bot de Twitter para fomentar el uso de textos alternativos (alt_text), 
-100% en español..
+100% en español.
 
 ¿Qué es un texto alternativo? Es un texto breve que describe la imagen para quienes no pueden verla. Tuitter permite 
 descripciones de hasta 1000 caracteres por imagen y [acá](https://help.twitter.com/es/using-twitter/picture-descriptions)
 hay un tutorial que explica cómo hacerlo.
 
 ## Cómo funciona AltBotUY
-La versión actual es la 1.2, y únicamente implementa la detección de imágenes sin textos alternativos entre sus 
-seguidores y seguidos (a los que llamaremos amigos), de la siguiente manera:
+La versión actual únicamente implementa la detección de imágenes sin textos alternativos entre sus 
+seguidores y seguidos (a estos últimos los llamaremos amigos), de la siguiente manera:
 
 * **Amigos**: el bot responde al tweet con un tweet que indica lo siguiente:
        _☝️ Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para 
@@ -17,14 +17,14 @@ seguidores y seguidos (a los que llamaremos amigos), de la siguiente manera:
        https://help.twitter.com/es/using-twitter/picture-descriptions_
 * **Seguidores** el bot responde por mensaje directo al seguidor con el siguiente mensaje: 
      _Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para describir todas sus imágenes...
-      <link-to-tweet>. Este artículo podría ayudar: https://help.twitter.com/es/using-twitter/picture-descriptions\n 
+      <link-to-tweet>. Este artículo podría ayudar: https://help.twitter.com/es/using-twitter/picture-descriptions \n 
       Gracias por seguirme!_
 * **Seguidores sin DMs**: si el seguidor no tiene los mensajes directos habilitados, el bot responde con un tweet con el
  siguiente texto: 
  _☝️ Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para 
         describir todas sus imágenes... Este artículo podría ayudar: 
-        https://help.twitter.com/es/using-twitter/picture-descriptions\n Gracias por seguirme! Mandame DM para 
-        recordarte por ahí a futuro 😉_
+        https://help.twitter.com/es/using-twitter/picture-descriptions \n Gracias por seguirme! Mandame DM para 
+        recordarte por ahí a futuro 😉._
 
 Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
         
@@ -32,7 +32,9 @@ Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
 Por favor, **no lo bloquees**: a futuro pensamos añadir un servicio de descripción automática de imágenes que se verá 
 perjudicado. **Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_laguna_)** para que el bot deje de seguirte. 
 
-Actualmente sólo trabajamos chequeando imágenes: los gifs, videos y similres de momento son ignorados..
+Actualmente sólo trabajamos chequeando imágenes: los gifs, videos y similres de momento son ignorados.
+
+El bot se ejecuta periódicamente, de manera que entre el tuit original y la respuesta de AltBotUY pueden pasar unas horas.
 
 ## ¿Por qué son importantes los alt_text?
 Básicamente son la unica forma de acceder a las imágenes para muchas personas, en 
@@ -43,15 +45,15 @@ interesantes al respecto.
 
 ## Sobre el proyecto
 
-El proyecto surgió una noche de Netfliix mirando una serie algo aburrida, me encontré con 
+El proyecto surgió una noche de Netflix mirando una serie algo aburrida, me encontré con 
 [este tweet](https://twitter.com/mili_costabel/status/1380992677727117317) con una 
 observación bien interesante sobre accesibilidad, alt_text y pandemia. Luego de intercambiar algunas ideas,
- agarré la máquina y me puse a escribir... Veremosadónde nos lleva...
+ agarré la máquina y me puse a escribir... Veremos a dónde nos lleva...
 
 ## ¿Qué esperar en el futuro de AltBotUY?
 
 Lo más próximo es la generación de reportes automáticos sobre el uso de alt_text entre los usuarios (amigos y seguidores),
-aun noo está del todo definido, pero la idea es publicar un podio de los usuarios que más lo usan.
+aún no está del todo definido, pero la idea es publicar un podio de los usuarios que más lo usan.
 
 Es posible también que incluya algunos tweets manuales con contenido relacionado a los alt_text: reflexiones, ejemplos, 
 consejos.
@@ -76,7 +78,11 @@ A futuro no descartamos publicar un dataset con imágenes y descripciones. En ta
 va a estar enmarcado en [#DatosAbiertos](https://twitter.com/hashtag/DatosAbiertos) y 
 [#OpenSource](https://twitter.com/hashtag/OpenSource).
 
-Si querés saber más al respecto, no ddes en escribir! Nos tomamos muy enserio este tema.
+Si querés saber más al respecto, no dudes en escribir! Nos tomamos muy enserio este tema.
+
+## Información técnica
+La descripción técnica del bot, podés encontrarla [acá](docs/technical-readme.md), está en inglés.
+Contiene instruccciones y requerimientos para ejecutar el bot, así como descripción de su funcionamiento.
 
 # Proyectos relacionados:
 
