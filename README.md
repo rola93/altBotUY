@@ -4,8 +4,15 @@
 100% en español.
 
 ¿Qué es un texto alternativo? Es un texto breve que describe la imagen para quienes no pueden verla. Twitter permite 
-descripciones de hasta 1000 caracteres por imagen y [acá](https://help.twitter.com/es/using-twitter/picture-descriptions)
+descripciones de hasta 1000 caracteres por imagen, [acá](https://help.twitter.com/es/using-twitter/picture-descriptions)
 hay un tutorial que explica cómo hacerlo.
+
+## ¿Por qué son importantes los alt_text?
+Básicamente los [alt_text](https://es.wikipedia.org/wiki/Wikipedia:Texto_alternativo_para_las_im%C3%A1genes) son la única forma de acceder a las imágenes para muchas personas, en [este artículo](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility)
+de [@mili_costabel](https://twitter.com/mili_costabel) lo explica mucho mejor (está en inglés), y en
+[este hilo](https://twitter.com/mili_costabel/status/1383129606803369990) (en español) hay un montón de reflexiones 
+interesantes al respecto. 
+
 
 ## ¿Cómo funciona AltBotUY?
 La versión actual únicamente implementa la detección de twits con imágenes sin textos alternativos entre sus 
@@ -34,13 +41,6 @@ perjudicados. **Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_lagun
 Actualmente sólo se chequean imágenes: los gifs, videos y similres son ignorados.
 
 El bot se ejecuta periódicamente, por lo tanto, entre que el tuit original se postea y AltBotUY lo procesa pueden pasar algunas horas.
-
-## ¿Por qué son importantes los alt_text?
-Básicamente son la única forma de acceder a las imágenes para muchas personas, en 
-[este artículo](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility) de 
-[@mili_costabel](https://twitter.com/mili_costabel) lo explica mucho mejor (está en inglés), y en
-[este hilo](https://twitter.com/mili_costabel/status/1383129606803369990) (en español) hay un montón de reflexiones 
-interesantes al respecto. 
 
 ## Sobre el proyecto
 
