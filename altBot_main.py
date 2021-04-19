@@ -480,6 +480,7 @@ class AltBot:
         :return: None
         """
         if update_users:
+            logging.info('Updating users')
             self.update_users_if_needed(True)
         if watch_for_alt_text_usage:
             logging.info('Watching for alt_text usage')
@@ -487,6 +488,7 @@ class AltBot:
         if msg_to_followers:
             logging.info(f'Sending message to all followers: {msg_to_followers}')
             self.send_message_to_all_followers(msg_to_followers)
+
     # endregion
 
 
