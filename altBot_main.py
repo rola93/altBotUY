@@ -16,7 +16,7 @@ except Exception as e:
     print('settings_prod not found; running just with settings')
     from settings import CONSUMER_KEY, CONSUMER_SECRET, KEY, SECRET
 
-from settings import LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, ALT_BOT_NAME, MAX_RECONNECTION_ATTEMPTS, \
+from settings import LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, MAX_RECONNECTION_ATTEMPTS, \
     MAINTEINER_NAME, MAINTAEINER_ID
 
 
@@ -34,7 +34,8 @@ class AltBot:
         self.live = live
 
         self.processed_tweets = set()  # type: Set[str]
-        self.db = DBAccess()
+        self.db_file = DB_FILE if live else DB_FILE + '-dev.db'
+        self.db = DBAccess(DB_FILE)
 
         self.api = None  # type: tweepy.API
         self.alt_bot_user = None  # type: tweepy.models.User
