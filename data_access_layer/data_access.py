@@ -119,25 +119,6 @@ class DBAccess:
 if __name__ == '__main__':
 
     db = DBAccess(f'../{DB_FILE}')
-    # db.save_processed_tweet('pepe4456')
-    # db.save_processed_tweet('pepe5')
-    # db.save_processed_tweet('pepe6')
-    #
-    # db.save_processed_tweet_with_with_alt_text_info('user_claudio123', 0, '00twit156', 3, 0., True, True)
-    # db.save_processed_tweet_with_with_alt_text_info('user_claudio123', 0, 'twit256', 4, 0.25, False, False)
-    # db.save_processed_tweet_with_with_alt_text_info('user_claudio123', 0, 'twit356', 4, 0.75, False, True)
-    # db.save_processed_tweet_with_with_alt_text_info('user_claudio123', 0, 'twit456', 4, 1, True, False)
-
-    # print(db.tweet_was_processed('pepe4'))
-    # print('='*10)
-    # print(db.tweet_was_processed('este no'))
-    #
-    # db.update_friends({('hola', 1), ('mundo',3)},  {('inexistente',2)})
-    # print(';'.join([str(s) for s in db.get_friends()]))
-    # print('='*10)
-    # db.update_followers({('sumado',123)}, {('mundo',2)})
-    # print(';'.join([f[0] for f in db.get_friends()]))
-    # print(';'.join([f[0] for f in db.get_followers()]))
 
     print(db.count_followers())
     print(db.count_friends())

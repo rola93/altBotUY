@@ -145,9 +145,12 @@ class AltBot:
         :return: None
         """
         if self.live:
-            self.api.create_favorite(tweet_id)
+            try:
+                self.api.create_favorite(tweet_id)
+            except tweepy.error.TweepError as tw_error:
+                logging.error(f'Can not fav tweet {tweet_id}: {tw_error}')
 
-        logging.debug(f'fav {tweet_id}')
+        logging.debug(f'[live={self.live}] - fav {tweet_id}')
 
     def reply(self, reply_to: str, msg: str, tweet_id: str) -> None:
         """
@@ -158,11 +161,16 @@ class AltBot:
         :return: None
         """
         if self.live:
-            self.api.update_status(
-                status=f'@{reply_to} {msg}',
-                in_reply_to_status_id=tweet_id
-            )
-        logging.debug(f'reply tweet to {tweet_id}')
+            try:
+                self.api.update_status(
+                    status=f'@{reply_to} {msg}',
+                    in_reply_to_status_id=tweet_id
+                )
+            except tweepy.error.TweepError as tw_error:
+                logging.error(f'Can not send tweet to {reply_to} in reply '
+                              f'to {self.get_tweet_url(reply_to, tweet_id)}: {tw_error}')
+
+        logging.debug(f'[live={self.live}] - reply tweet to {tweet_id}')
 
     def direct_message(self, recipient_name: str, recipient_id: int, msg: str) -> int:
         """
@@ -178,14 +186,14 @@ class AltBot:
         try:
             if self.live:
                 self.api.send_direct_message(recipient_id, msg)
-            logging.debug(f'send Direct Message to {recipient_id};')
+            logging.debug(f'[live={self.live}] - send Direct Message to {recipient_id};')
             ret = 0
 
         except tweepy.error.TweepError as tw_error:
 
             if tw_error.api_code == 349:
                 # we do not follow the user or DMs are closed or we're blocked
-                logging.debug(f'Can not send message to {recipient_name}: {tw_error}')
+                logging.info(f'Can not send message to {recipient_name}: {tw_error}')
                 ret = 1
             else:
                 logging.error(f'Unknown: Can not send message to {recipient_name}: {tw_error}')
@@ -197,7 +205,7 @@ class AltBot:
         try:
             if self.live:
                 self.api.create_friendship(screen_name)
-            logging.debug(f'Now following {screen_name}')
+            logging.debug(f'[live={self.live}] - Now following {screen_name}')
 
         except tweepy.error.TweepError as tw_error:
             logging.error(f'Can not follow user {screen_name}: {tw_error}')
@@ -500,17 +508,20 @@ if __name__ == '__main__':
                         )
 
     parser = argparse.ArgumentParser(description="This script runs AltBotUY.")
-    parser.add_argument("-u", "--update-users", help="Update the local list of followers and friends",
+    parser.add_argument("-u", "--update-users", help="Update the local list of followers and friends.",
                         action="store_true")
-    parser.add_argument("-w", "--watch-alt-texts", help="Run the watch-alt-text use case",
+    parser.add_argument("-w", "--watch-alt-texts", help="Run the watch-alt-text use case.",
                         action="store_true")
     parser.add_argument("-m", "--message", help="Send given message to followers. Can also be the path to a text file "
-                                                "containing the message", default=None, type=str)
+                                                "containing the message.", default=None, type=str)
+    parser.add_argument("-l", "--live", help="Actually send DMs, tweets and favs, otherwise just logs it. "
+                                             "Must use it for production.",
+                        action="store_true")
     args = parser.parse_args()
 
     start = time.time()
 
-    bot = AltBot(live=False)
+    bot = AltBot(live=args.live)
 
     try:
         logging.debug(f'Running bot with args {args}')

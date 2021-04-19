@@ -70,6 +70,8 @@ currently in production (prod branch). Some of them are closed issues in master,
  * Implement broadcast message to followers to share news on the bot
     
 # ROAD MAP (prioritized):
+ * **BUGFIX**: Can not send DMs to all followers since the API start to throw error; maybe need to sleep or 
+ use different messages
  * ~~**IMPROVEMENT**: Read the following list and use this instead of the `settings.ACCOUNTS_TO_CHECK`.~~
  * ~~**IMPROVEMENT**: crontab based local deploy, run it once a day~~
  * ~~**IMPROVEMENT**: Follow back followers whose tweets can't be read.~~
@@ -115,19 +117,21 @@ Also need to provide the appropiated credentials to connect with Twitter, define
 Information on how to run can be checked with `help` command, as follows:
 
 ```.env
-$  python altBot_main.py --help                                                                                                                                         3643  17:14:03  
-usage: altBot_main.py [-h] [-u] [-w] [-m MESSAGE]
+$   python altBot_main.py --help 
+usage: altBot_main.py [-h] [-u] [-w] [-m MESSAGE] [-l]
 
 This script runs AltBotUY.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -u, --update-users    Update the local list of followers and friends
+  -u, --update-users    Update the local list of followers and friends.
   -w, --watch-alt-texts
-                        Run the watch-alt-text use case
+                        Run the watch-alt-text use case.
   -m MESSAGE, --message MESSAGE
                         Send given message to followers. Can also be the path
-                        to a text file containing the message
+                        to a text file containing the message.
+  -l, --live            Actually send DMs, tweets and favs, otherwise just
+                        logs it. Must use it for production.
 
 ```
 
