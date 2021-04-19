@@ -1,3 +1,4 @@
+<img src="https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Frola93.github.io%2FaltBotUY%2F" alt="Contador de visitas">
 # AltBotUY
 
 [@AltBotUY](https://twitter.com/AltBotUY) es un bot de Twitter para fomentar el uso de textos alternativos (alt_text), 
