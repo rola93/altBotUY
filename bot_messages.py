@@ -3,7 +3,7 @@ ALT_TEXT_TUTORIAL_URL = 'https://help.twitter.com/es/using-twitter/picture-descr
 # Tweet message for friends
 AUTO_REPLY_NO_ALT_TEXT = '☝️ Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para ' \
                          'describir  todas sus imágenes... Este artículo te podría ayudar: ' \
-                         'f{ALT_TEXT_TUTORIAL_URL}'
+                         f'{ALT_TEXT_TUTORIAL_URL}'
 # Direct message for followers
 AUTO_DM_NO_ALT_TEXT = 'Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para describir ' \
                          'todas sus imágenes... {}. Este artículo podría ayudar: ' \
