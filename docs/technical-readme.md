@@ -42,7 +42,7 @@ by the bot. If a user is both friend and follower, it is processed as follower.
 `altBot_main.py` module contains all logic to run this, all you need is to implement a main function
 to run all this, then its execution must be someway chroned, for instance with chron or chrontab in linux. 
 
-You needalso to supply your tweeter credentials in `settings` module, read 
+You need also to supply your tweeter credentials in `settings` module, read 
 [here](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials) how
 to do it.
 
@@ -56,9 +56,9 @@ currently in production (prod branch). Some of them are closed issues in master,
 ## V1.1
 [master] Those changes are not in production yet. A database is first needed to make it robust enough.
  *  Usage of alt_text is now checked for both: followers and friends. Friends are reply publicly while for followers a 
- DM is sent if possible, other wise a public tweet inviting them to DM the bot
+ DM is sent if possible, otherwise a public tweet inviting them to DM the bot
  * Current version add timestamp to log file
- * Messages are are now defined in `bot_messages.py` module, and include a link to a tutorial on how to add alt_text 
+ * Messages are now defined in `bot_messages.py` module, and include a link to a tutorial on how to add alt_text 
  to images.  
  
  ## V1.2
@@ -109,7 +109,7 @@ Feel free to tackle any of those or even add new ones!
 
 Requirements can be installed with `pip install -r requirements.txt`, developed under python 3.7.7. 
  
-Also need to provide the appropiated credentials to connect with Twitter, defined in `settings.py`. The interaction with twitter is done throgth tweepy API. 
+Also need to provide the appropiated credentials to connect with Twitter, defined in `settings.py`. The interaction with twitter is done through tweepy API. 
 [Here](https://realpython.com/twitter-bot-python-tweepy/#using-tweepy) you can find a complete tutorial on this API.
 
 ## running the bot
