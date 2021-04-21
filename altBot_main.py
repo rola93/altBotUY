@@ -7,7 +7,8 @@ from typing import List, Optional, Set, Union, Tuple
 
 import tweepy
 
-from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT
+from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
+    SINGLE_USER_NO_IMAGES_FOUND, SINGLE_USER_REPORT
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -16,8 +17,8 @@ except Exception as e:
     print('settings_prod not found; running just with settings')
     from settings import CONSUMER_KEY, CONSUMER_SECRET, KEY, SECRET
 
-from settings import LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, MAX_RECONNECTION_ATTEMPTS, \
-    MAINTEINER_NAME, MAINTAEINER_ID
+from settings import ACCEPT_DM_TWEET_ID, LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, \
+    MAX_RECONNECTION_ATTEMPTS, MAX_MENTIONS_TO_PROCESS, MAINTEINER_NAME, MAINTAEINER_ID, LAST_N_MENTIONS
 
 
 class AltBot:
@@ -34,8 +35,8 @@ class AltBot:
         self.live = live
 
         self.processed_tweets = set()  # type: Set[str]
-        self.db_file = DB_FILE if live else DB_FILE + '-dev.db'
-        self.db = DBAccess(DB_FILE)
+        self.db_file = DB_FILE if live else DB_FILE + '-alive.db'
+        self.db = DBAccess(self.db_file)
 
         self.api = None  # type: tweepy.API
         self.alt_bot_user = None  # type: tweepy.models.User
@@ -66,6 +67,37 @@ class AltBot:
             raise Exception(msg)
         logging.info('Connected to Tweeter API')
 
+    def get_retweeters(self, tweet_id: int, kindly_sleep: float = 15) -> Set[int]:
+        """
+        get the list of user_ids who have retweeted the tweet with id=tweet_it
+        :param tweet_id: id of thetweet to get its retweeters
+        :param kindly_sleep: time to sleep to prevent overloading the API, 15 requests in 15 minutes
+        :return: set of user ids who retweeted the tweet
+        """
+        result = set()  # type: Set[int]
+
+        logging.info(f'Reading users who RTed this tweet: {tweet_id}')
+
+        for page in tweepy.Cursor(self.api.retweeters, id=tweet_id, count=500).pages():
+            begin = time.time()
+            for p in page:
+                result.add(p)
+            # go to sleep some time to avoid being banned
+            time.sleep(max(kindly_sleep - (time.time() - begin), 0))
+
+        logging.info(f'{len(result)} RTed this tweet: {tweet_id}')
+
+        return result
+
+    def get_tweet(self, tweet_id: str):
+        """
+        Read particular tweet from the API
+        :param tweet_id: id of the twet to be read from the API
+        :return: tweet, as tweepy object
+        """
+        status = self.api.get_status(tweet_id, include_ext_alt_text=True, include_entities=True, tweet_mode="extended")
+        return status
+
     def load_alt_bot_user(self):
         self.alt_bot_user = self.api.verify_credentials()
 
@@ -89,6 +121,16 @@ class AltBot:
                 result.add((p.screen_name, p.id))
             # go to sleep some time to avoid being banned
             time.sleep(max(kindly_sleep - (time.time() - begin), 0))
+
+        return result
+
+    def get_allowed_to_dm_from_api(self) -> Set[int]:
+        """
+        Read the followers list for the screen_name user
+        :param screen_name: user to get its followers
+        :return: list of (user_id)
+        """
+        result = self.get_retweeters(ACCEPT_DM_TWEET_ID)
 
         return result
 
@@ -211,7 +253,21 @@ class AltBot:
         except tweepy.error.TweepError as tw_error:
             logging.error(f'Can not follow user {screen_name}: {tw_error}')
 
-    # endregion
+    def get_mentions(self, since_id) -> List[tweepy.models.Status]:
+        # 75 request/15 min
+        mentions = []
+
+        try:
+            for page in tweepy.Cursor(self.api.mentions_timeline, since_id=since_id, count=LAST_N_MENTIONS).pages():
+                # begin = time.time()
+                for p in page:
+                    mentions.append(p)
+        except tweepy.error.TweepError as tw_error:
+            logging.error(f'Can not load mentions: an error occurred: {tw_error}')
+
+        return mentions
+
+        # endregion
 
     # region: main logic
 
@@ -240,6 +296,30 @@ class AltBot:
             logging.info(f'New followers: {len(new_followers)} Lost followers: {len(lost_followers)} '
                          f'Win followers: {len(new_followers) - len(lost_followers)}')
             self.db.update_followers(new_followers, lost_followers)
+
+    def update_allowed_to_dm_if_needed(self, needed: bool) -> None:
+        """
+        Update local list of followers if needed or #localFollowers != #realFollowers
+        :param needed: Update the followers local list, no matter if is the same as in real Tweeter
+        :return: None
+        """
+        n_local_allowed_to_dm = self.db.count_allowed_to_dm()
+        n_real_allowed = self.get_tweet(ACCEPT_DM_TWEET_ID).retweet_count
+
+        logging.info(f'Locally have {n_local_allowed_to_dm} allowed_to_dm currently they are {n_real_allowed}. '
+                     f'Needed = {needed}')
+
+        if n_local_allowed_to_dm != n_real_allowed or needed:
+            local_allowed = self.db.get_allowed_to_dm()
+            logging.info(f'Updating local allowed...')
+            # need to update
+            real_allowed = self.get_allowed_to_dm_from_api()
+            new_allowed = real_allowed - local_allowed
+            lost_allowed = local_allowed - real_allowed
+
+            logging.info(f'New allowed: {len(new_allowed)} Lost allowed: {len(lost_allowed)} '
+                         f'Win allowed: {len(new_allowed) - len(lost_allowed)}')
+            self.db.update_allowed_to_dm(new_allowed, lost_allowed)
 
     def update_friends_if_needed(self, needed: bool) -> None:
         """
@@ -288,11 +368,11 @@ class AltBot:
                 Consider a single tweet may contain up to 4 images and each of them can not contain an alt_text.
         """
 
-        status = self.api.get_status(tweet_id, include_ext_alt_text=True, include_entities=True, tweet_mode="extended")
+        tweet = self.get_tweet(tweet_id)
 
-        if hasattr(status, 'extended_entities'):
-            if len(status.extended_entities['media']) > 0:
-                result = [media['ext_alt_text'] for media in status.extended_entities['media'] if
+        if hasattr(tweet, 'extended_entities'):
+            if len(tweet.extended_entities['media']) > 0:
+                result = [media['ext_alt_text'] for media in tweet.extended_entities['media'] if
                           media['type'] == 'photo']
                 logging.debug(f'Tweet {tweet_id} contains extended_entities and media: {result}.')
             else:
@@ -318,15 +398,17 @@ class AltBot:
 
         return round(sum(alt_text_count) / len(alt_text_count), 2)
 
-    def process_account(self, screen_name: str, user_id: int, follower: bool, n_tweets: int) -> None:
+    def process_account(self, screen_name: str, user_id: int, follower: bool, allowed_to_be_dmed: bool,
+                        n_tweets: int) -> None:
         """
         Process an account checking its last n_tweets:
          - If all images in tweet contain alt_text, then it is faved
-         - If some images in tweet does not contain alt_text, then DM for followers reply for non-followers
+         - If some images in tweet does not contain alt_text, then DM for followers who allowed_to_be_DMed or ignore
          - Otherwise ignore it
         :param screen_name: account to be processed
         :param user_id: user_id to be processed, only used to send DMs (followers)
         :param follower: whether or not the screen_name account is a follower
+        :param allowed_to_be_dmed: whether or not the bot is allowed to contact the user via DM
         :param n_tweets: number of tweets to consider
         :return: None
         """
@@ -360,36 +442,32 @@ class AltBot:
                     self.fav_tweet(tweet_id)
                 else:
                     # there are some images without alt_text; alert message needed
-                    if follower:
-                        # if it is a follower, write a DM
+                    if follower and allowed_to_be_dmed:
+                        # if it is a follower who allowed to be DMed by the bot, write a DM
                         logging.debug(f'Some images ({alt_text_score*100} %) in tweet does not contain alt texts: '
                                       f'{self.get_tweet_url(screen_name, tweet_id)} | '
                                       f'DM the user, this is a follower')
-                        res = self.direct_message(screen_name, user_id, AUTO_DM_NO_ALT_TEXT.format(self.get_tweet_url(screen_name,
-                                                                                                       tweet_id)))
-                        if res == -1:
-                            # The user follows us, but we can't DM it, so reply with a tweet
-                            self.reply(screen_name, AUTO_REPLY_NO_DM_NO_ALT_TEXT, tweet_id)
-
+                        self.direct_message(screen_name, user_id, AUTO_DM_NO_ALT_TEXT.format(
+                            self.get_tweet_url(screen_name, tweet_id)))
                     else:
-                        # if it is a follower, write a DM
+                        # if it is not a follower or is not allowed to be DMed by the bot, just log it
                         logging.debug(f'Some images ({alt_text_score*100} %) in tweet does not contain alt texts: '
                                       f'{self.get_tweet_url(screen_name, tweet_id)} | '
-                                      f'reply the user, is not a follower')
-                        self.reply(screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_id)
+                                      f'IGNORED: follower: {follower} allowed_to_be_DMed: {allowed_to_be_dmed}')
 
                 self.db.save_processed_tweet(tweet_id)
                 self.db.save_processed_tweet_with_with_alt_text_info(screen_name, user_id, tweet_id, len(alt_texts),
-                                                                     alt_text_score, follower, not follower)
+                                                                     alt_text_score)
 
             except Exception as e:
                 logging.error(f'Exception: {e} while processing tweet '
                               f'https://twitter.com/{screen_name}/status/{tweet_id}', exc_info=True)
 
-    def process_followers(self, followers: Set[Tuple[str, int]]) -> None:
+    def process_followers(self, followers: Set[Tuple[str, int]], users_accepted: Set[int]) -> None:
         """
         Process each follower account in followers set with self.process_account, as followers
         :param followers: set of followers to be processed
+        :param users_accepted: set of user ids who accepted to receive DMs
         :return: None
         """
 
@@ -400,7 +478,8 @@ class AltBot:
             logging.info(f'[{i}/{n_followers}] Processing follower @{follower_screen_name}...')
 
             try:
-                self.process_account(follower_screen_name, follower_id, follower=True, n_tweets=LAST_N_TWEETS)
+                self.process_account(follower_screen_name, follower_id, follower=True, n_tweets=LAST_N_TWEETS,
+                                     allowed_to_be_dmed=follower_id in users_accepted)
             except Exception as e:
                 logging.error(f'Error while processing follower: {follower_screen_name}:\n{e}')
                 continue
@@ -426,23 +505,180 @@ class AltBot:
             logging.info(f'[{i}/{n_friends}] Processing friend @{friend_screen_name}...')
 
             try:
-                self.process_account(friend_screen_name, friend_id, follower=False, n_tweets=LAST_N_TWEETS)
+                self.process_account(friend_screen_name, friend_id, follower=False, n_tweets=LAST_N_TWEETS,
+                                     allowed_to_be_dmed=False)
             except Exception as e:
                 logging.error(f'Error while processing follower: {friend_screen_name}:\n{e}')
                 continue
+
+    def process_tweets_in_reply_to_other_tweet(self, mentions: List[tweepy.models.Status]):
+
+        for mention in mentions:
+            # TODO: need to check that only the bot is mention here; otherwise ignore it
+            self.process_mention_in_reply_to_tweet(mention)
+
+    def process_mention_in_reply_to_tweet(self, tweet):
+        """
+        mention is a tweet which mentioned AltBotUY in reply to another tweet; need to get this another tweet and
+        check to see if there are images in it, with or without alt_text.
+        :param tweet:
+        :return:
+        """
+        tweet_to_process_screen_name = tweet.in_reply_to_screen_name  # type: str
+        tweet_to_process_user_id = tweet.in_reply_to_user_id  # type: int
+        tweet_to_process_tweet_id = tweet.in_reply_to_status_id  # type: int
+        tweet_to_process_url = self.get_tweet_url(tweet_to_process_screen_name, tweet_to_process_tweet_id)
+
+        # TODO: first check if tweet already in DB
+
+        if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
+            logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
+            # we already procesed this tweet; take results from DB
+            alt_text_score = self.db.get_alt_score_from_tweet(str(tweet_to_process_tweet_id))
+            if alt_text_score is None:
+                # the tweet does not contain an image
+                logging.debug(f'Tweet being reply was already processed and does not contain images')
+                # TODO: reply accordingly
+            elif alt_text_score < 1:
+                logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
+                # TODO: reply accordingly
+            else:
+                logging.debug(f'Tweet being reply was already processed and all images contain alt_text')
+                # TODO: reply accordingly
+        else:
+            # tweet is not in our DB; we need to get it from the API
+            alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
+
+            if alt_texts is None or not alt_texts:
+                # skip since the tweet does not contain images
+                logging.debug(f'This tweet is not interesting for us: {tweet_to_process_url}')
+                self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
+                # TODO: reply accordingly
+            else:
+
+                alt_text_score = self.compute_alt_text_score(alt_texts)
+
+                if alt_text_score == 1:
+                    # all of the images contains alt_text, let's like it
+                    logging.debug(f'All images in tweet contain alt texts: {tweet_to_process_url}')
+                    self.fav_tweet(str(tweet_to_process_tweet_id))
+                    # TODO: reply to this
+                else:
+                    # some images with out alt_text; reply the tweet with proper message
+                    logging.debug(f'Some images ({alt_text_score * 100} %) in tweet does not contain '
+                                  f'alt texts: {tweet_to_process_url}')
+                    if self.db.is_allowed_to_dm(tweet_to_process_user_id) and self.db.is_follower(
+                            tweet_to_process_user_id):
+                        logging.debug(f'the user is a follower with DMs allowed, so, need to write DM to user')
+
+                    # TODO: reply to this AND if its author is follower AND allowed DMs, write also to the author
+
+                self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
+                self.db.save_processed_tweet_with_with_alt_text_info(tweet_to_process_screen_name,
+                                                                     tweet_to_process_user_id,
+                                                                     str(tweet_to_process_tweet_id),
+                                                                     len(alt_texts), alt_text_score)
+
+    def process_mentioned_users_in_tweet(self, tweet: tweepy.models.Status) -> None:
+        """
+        tweet is an original tweetwhich mentionthe bot; we need to extract other accounts mentioned in the tweet
+        (up to MAX_MENTIONS_TO_PROCESS), process each of those and reply to tweet with a small report on the usage of
+        alt_text.
+        :param tweet: tweet whose mentions are going to be processed
+        :return: None
+        """
+
+        report = []
+        n = min(MAX_MENTIONS_TO_PROCESS, len(tweet.entities['user_mentions']))
+        tweet_url = self.get_tweet_url(tweet.author.screen_name, tweet.id)
+
+        # check the users mentiioned in the tweet
+        for i, user in enumerate(tweet.entities['user_mentions']):
+
+            logging.debug(f"[{i}/{n}] processing mentioned user: @{user['screen_name']} ({tweet_url})")
+
+            if user['screen_name'] == self.alt_bot_user.screen_name:
+                logging.debug(f'Skip processing this mentioned user since it is the bot itself ({tweet_url}).')
+                continue
+
+            score, n_images = self.db.get_percentage_of_alt_text_usage(user['id'])
+
+            if score < 0:
+                # user is not in our db; lets get some of its tweets
+                follower = self.db.is_follower(user['id'])
+                allowed = self.db.is_allowed_to_dm(user['id'])
+                # notice that this line will send the user a DM  if needed
+                self.process_account(user['screen_name'], user['id'], follower, allowed, LAST_N_TWEETS)
+                # let's get again its alt_text score
+                score, n_images = self.db.get_percentage_of_alt_text_usage(user['id'])
+
+            if score < 0:
+                # score may still be < 0 if the user didn't posted any image recently
+                report.append(SINGLE_USER_NO_IMAGES_FOUND.format(screen_name=user['screen_name']))
+            else:
+                report.append(SINGLE_USER_REPORT.format(screen_name=user['screen_name'],
+                                                        score=score, n_images=n_images))
+            if len(report) == MAX_MENTIONS_TO_PROCESS:
+                logging.info(f'[{i}/{n}] Stop processing mentioned users since {MAX_MENTIONS_TO_PROCESS} already processed')
+                break
+
+        if len(report) > 0:
+            # report can be empty, for instance, if no user is mentioned but the bot
+            # reply_to: str, msg: str, tweet_id: str
+            logging.debug(f'reply with report for mentioned accounts')
+            self.reply(msg='\n'.join(report), reply_to=tweet.author.screen_name, tweet_id=tweet.id_str)
+
+    def process_original_tweets_mentioning_bot(self, tweets: List[tweepy.models.Status]):
+        """
+        process all original tweets that mention the bot: those tweets that only mention the bot and some other accounts
+        (i.e. no more text than this) a report is given for the mentioned accounts.
+        :param tweets: list of original tweets to be processed
+        :return:
+        """
+
+        for tweet in tweets:
+            if tweet.author.screen_name == self.alt_bot_user.screen_name:
+                logging.debug(f'Skip processing this mention since was written by the bot.')
+                continue
+            # TODO here we also need to check if no other text than other mention is included and no media contained
+            self.process_mentioned_users_in_tweet(tweet)
+
+    def process_mentions(self):
+        last_mention_id = 1382671652857786368
+        mention_tweets = self.get_mentions(last_mention_id)
+        # TODO: make sure not to process itself.
+        # TODO: properly store and manage the last_mention_id/next_mention_id
+        tweets_in_reply_to_other_mentioning_bot = []
+        original_tweets_mentioning_bot = []
+        next_last_mention_id = last_mention_id
+
+        for tweet in mention_tweets:
+            if tweet.in_reply_to_status_id is None:
+                # this is an original tweet; need to process the mentioned accounts
+                original_tweets_mentioning_bot.append(tweet)
+            else:
+                # this tweet is in reply to some other tweet; need to check this previous tweet
+                tweets_in_reply_to_other_mentioning_bot.append(tweet)
+
+        logging.info(f'Processing mentions in original tweets')
+        self.process_original_tweets_mentioning_bot(original_tweets_mentioning_bot)
+
+        logging.info(f'Processing mentions in tweets that are reply to another')
+        self.process_tweets_in_reply_to_other_tweet(tweets_in_reply_to_other_mentioning_bot)
 
     def watch_for_alt_text_usage(self) -> None:
         """
         Process all followers and friends of AltBotUY to check for alt_text usage:
          - If all images in tweet contain alt_text, then it is faved
-         - If some images in tweet does not contain alt_text, then DM for followers reply for friends
+         - If some images in tweet does not contain alt_text, then DM for followers who accepted to be DMed or ignore
          - Otherwise ignore it
         :return: None
         """
 
         self.update_users_if_needed(False)
+        allowed_to_be_dmed = self.db.get_allowed_to_dm()
         followers = self.db.get_followers()
-        self.process_followers(followers)
+        self.process_followers(followers, allowed_to_be_dmed)
         logging.info(f'{len(followers)} followers were processed')
         friends = self.db.get_friends()
         self.process_friends(friends, followers)
@@ -482,6 +718,8 @@ class AltBot:
         self.update_followers_if_needed(needed)
         logging.info('Updating friends if needed')
         self.update_friends_if_needed(needed)
+        logging.info('Updating allowed_to_dm if needed')
+        self.update_allowed_to_dm_if_needed(needed)
 
     def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage: bool) -> None:
         """
@@ -522,17 +760,22 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    bot = AltBot(live=args.live)
+    bot = AltBot(live=False)  # args.live
 
-    try:
-        logging.debug(f'Running bot with args {args}')
-        bot.main(update_users=args.update_users, msg_to_followers=args.message,
-                 watch_for_alt_text_usage=args.watch_alt_texts)
-    except Exception as e:
-        error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
-        logging.critical(error_msg)
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
+    tweet = bot.get_tweet(ACCEPT_DM_TWEET_ID)
+    # bot.get_mentions(1382671652857786368)
+    bot.process_mentions()
+
+    # try:
+    #     logging.debug(f'Running bot with args {args}')
+    #     # accepted = bot.get_retweeters(ACCEPT_DM_TWEET_ID)
+    #     bot.main(update_users=args.update_users, msg_to_followers=args.message,
+    #              watch_for_alt_text_usage=args.watch_alt_texts)
+    # except Exception as e:
+    #     error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
+    #     logging.critical(error_msg)
+    #     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #     bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
 
     took_seconds = time.time() - start
 
