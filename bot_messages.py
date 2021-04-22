@@ -17,7 +17,10 @@ AUTO_REPLY_NO_DM_NO_ALT_TEXT = '☝️ Este tweet sería más inclusivo con el u
                                f'{ALT_TEXT_TUTORIAL_URL}\n Gracias por seguirme! ' \
                                f'Mandame DM para recordarte por ahí a futuro 😉'
 
-SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en el {score:.2f} % de sus imágenes (en {n_images})'
+AUTO_REPLY_NO_IMAGES_FOUND = f'☝️ Ese tweet no contiene imágenes...  Por ahora no chequeo otros contenidos (GIFs, ' \
+    f'videos, links externos).'
+
+SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en el {score:.2f} % de sus imágenes ({n_images} imágenes analizadas)'
 SINGLE_USER_NO_IMAGES_FOUND = '@{screen_name}: no encontré tweets con imágenes.'
 
 SINGLE_USER_NO_ALT_TEXT_QUERY = f'☝️ Ese tweet sería más inclusivo con el uso de textos alternativos (alt_text) para ' \

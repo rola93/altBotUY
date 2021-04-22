@@ -11,6 +11,9 @@ from settings import DB_FILE
 
 class DBAccess:
 
+    last_mention_key_setting = 'last_mention_id'
+    last_mention_value_setting = 1382671652857786368
+
     def __init__(self, db_file: str = DB_FILE):
 
         self.db_file = db_file
@@ -35,6 +38,15 @@ class DBAccess:
         self.connection.execute(db_queries.CREATE_INDEX_FOR_HISTORIC_USER)
         self.connection.execute(db_queries.CREATE_FRIENDS_TWEETS_TABLE)
         self.connection.execute(db_queries.CREATE_FOLLOWERS_TABLE)
+        self.connection.execute(db_queries.CREATE_ALLOWED_TO_DM_TABLE)
+        self.connection.execute(db_queries.CREATE_SETTINGS_TABLE)
+        self.create_last_mention_if_needed()
+
+    def create_last_mention_if_needed(self):
+        if self. get_last_mention_id() is None:
+            self.connection.execute(db_queries.ADD_SETTING, (DBAccess.last_mention_key_setting,
+                                                             DBAccess.last_mention_value_setting))
+            self.connection.commit()
 
     def save_processed_tweet_with_with_alt_text_info(self, screen_name: str, user_id: int, tweet_id: str, n_images: int,
                                                      alt_score: float) -> None:
@@ -57,13 +69,18 @@ class DBAccess:
                                  processed_at, friend, follower))
         self.connection.commit()
 
-    def save_processed_tweet(self, tweet_id: str) -> None:
+    def save_processed_tweet(self, tweet_id: str, do_not_fail: bool = False) -> None:
         """
         Stores the id of processed tweet, no matter if contains images or not
         :param tweet_id: id of a processed tweet
+        :param do_not_fail: do not fail if tweet_id already processed
         :return: None
         """
-        self.connection.execute(db_queries.SAVE_PROCESSED_TWEET, (tweet_id,))
+        if do_not_fail:
+            # this query ignores the insertion if twet was already in table
+            self.connection.execute(db_queries.SAVE_PROCESSED_TWEET_NO_FAIL, (tweet_id,))
+        else:
+            self.connection.execute(db_queries.SAVE_PROCESSED_TWEET, (tweet_id,))
         self.connection.commit()
 
     def tweet_was_processed(self, tweet_id: str) -> bool:
@@ -179,6 +196,14 @@ class DBAccess:
 
         return result
 
+    def get_last_mention_id(self) -> Optional[int]:
+        query_result = self.connection.execute(db_queries.GET_SETTING, (DBAccess.last_mention_key_setting,)).fetchone()
+        result = None if query_result is None else int(query_result[0])
+        return result
+
+    def update_last_mention_id(self, last_mention_id: int) -> None:
+        self.connection.execute(db_queries.UPDATE_SETTING, (last_mention_id, DBAccess.last_mention_key_setting))
+        self.connection.commit()
 
 
 if __name__ == '__main__':
@@ -192,3 +217,7 @@ if __name__ == '__main__':
     print(db.get_percentage_of_alt_text_usage(226279188))
 
     print(db.get_alt_score_from_tweet('hola mundo'))
+
+    print(db.save_processed_tweet('hola'))
+    print(db.save_processed_tweet('hola', True))
+    print(db.save_processed_tweet('hola'))

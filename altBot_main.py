@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 import time
 from datetime import timedelta, datetime
 from typing import List, Optional, Set, Union, Tuple
@@ -8,7 +9,7 @@ from typing import List, Optional, Set, Union, Tuple
 import tweepy
 
 from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
-    SINGLE_USER_NO_IMAGES_FOUND, SINGLE_USER_REPORT
+    SINGLE_USER_NO_IMAGES_FOUND, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -36,7 +37,7 @@ class AltBot:
 
         self.processed_tweets = set()  # type: Set[str]
         self.db_file = DB_FILE if live else DB_FILE + '-alive.db'
-        self.db = DBAccess(self.db_file)
+        self.db = DBAccess(DB_FILE)
 
         self.api = None  # type: tweepy.API
         self.alt_bot_user = None  # type: tweepy.models.User
@@ -213,7 +214,7 @@ class AltBot:
                 logging.error(f'Can not send tweet to {reply_to} in reply '
                               f'to {self.get_tweet_url(reply_to, tweet_id)}: {tw_error}')
 
-        logging.debug(f'[live={self.live}] - reply tweet to {tweet_id}')
+        logging.debug(f'[live={self.live}] - reply tweet to {tweet_id}: [[{msg}]]'.replace("\n", ";"))
 
     def direct_message(self, recipient_name: str, recipient_id: int, msg: str) -> int:
         """
@@ -229,7 +230,7 @@ class AltBot:
         try:
             if self.live:
                 self.api.send_direct_message(recipient_id, msg)
-            logging.debug(f'[live={self.live}] - send Direct Message to {recipient_id};')
+            logging.debug(f'[live={self.live}] - send Direct Message to {recipient_id}: [[{msg}]]'.replace("\n", ";"))
             ret = 0
 
         except tweepy.error.TweepError as tw_error:
@@ -529,7 +530,8 @@ class AltBot:
         tweet_to_process_tweet_id = tweet.in_reply_to_status_id  # type: int
         tweet_to_process_url = self.get_tweet_url(tweet_to_process_screen_name, tweet_to_process_tweet_id)
 
-        # TODO: first check if tweet already in DB
+        tweet_to_reply_screen_name = tweet.author.screen_name
+        tweet_to_reply_id = tweet.author.id_str
 
         if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
             logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
@@ -538,22 +540,22 @@ class AltBot:
             if alt_text_score is None:
                 # the tweet does not contain an image
                 logging.debug(f'Tweet being reply was already processed and does not contain images')
-                # TODO: reply accordingly
+                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_IMAGES_FOUND, tweet_to_reply_id)
             elif alt_text_score < 1:
                 logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
-                # TODO: reply accordingly
+                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_to_reply_id)
             else:
-                logging.debug(f'Tweet being reply was already processed and all images contain alt_text')
-                # TODO: reply accordingly
+                logging.debug(f'Tweet being reply was already processed and ALL images contain alt_text')
+                self.reply(tweet_to_reply_screen_name, SINGLE_USER_WITH_ALT_TEXT_QUERY, tweet_to_reply_id)
         else:
-            # tweet is not in our DB; we need to get it from the API
+            # tweet is not in our DB; we need to get it from the API and process accordingly
             alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
 
             if alt_texts is None or not alt_texts:
                 # skip since the tweet does not contain images
                 logging.debug(f'This tweet is not interesting for us: {tweet_to_process_url}')
                 self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
-                # TODO: reply accordingly
+                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_IMAGES_FOUND, tweet_to_reply_id)
             else:
 
                 alt_text_score = self.compute_alt_text_score(alt_texts)
@@ -562,22 +564,61 @@ class AltBot:
                     # all of the images contains alt_text, let's like it
                     logging.debug(f'All images in tweet contain alt texts: {tweet_to_process_url}')
                     self.fav_tweet(str(tweet_to_process_tweet_id))
-                    # TODO: reply to this
+                    self.reply(tweet_to_reply_screen_name, SINGLE_USER_WITH_ALT_TEXT_QUERY, tweet_to_reply_id)
                 else:
                     # some images with out alt_text; reply the tweet with proper message
                     logging.debug(f'Some images ({alt_text_score * 100} %) in tweet does not contain '
                                   f'alt texts: {tweet_to_process_url}')
+                    self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_to_reply_id)
+                    # also reply to the author if needed
                     if self.db.is_allowed_to_dm(tweet_to_process_user_id) and self.db.is_follower(
                             tweet_to_process_user_id):
                         logging.debug(f'the user is a follower with DMs allowed, so, need to write DM to user')
+                        self.direct_message(tweet_to_process_screen_name, tweet_to_process_user_id,
+                                            AUTO_REPLY_NO_DM_NO_ALT_TEXT.format(tweet_to_process_url))
 
-                    # TODO: reply to this AND if its author is follower AND allowed DMs, write also to the author
-
-                self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
+                # save the processed tweet as processed with images data
                 self.db.save_processed_tweet_with_with_alt_text_info(tweet_to_process_screen_name,
                                                                      tweet_to_process_user_id,
                                                                      str(tweet_to_process_tweet_id),
                                                                      len(alt_texts), alt_text_score)
+
+        # save the processed tweet as processed if needed; notice that the tweet may be already processed
+        # happens when user A tweets an image,
+        # user B (bot's follower or friend) reply A's tweet
+        # the watch use case is run; B's reply is processed
+        # the mentions use case is run, B's reply must be processed again since
+        # now we're checking for A's tweet
+        self.db.save_processed_tweet(str(tweet_to_process_tweet_id), do_not_fail=True)
+
+    @staticmethod
+    def check_text_only_mention_users(text: str) -> bool:
+        """
+        Check if text only contain mentions to any user
+        :param text: tweet text
+        :return: True iff tweet only contains users mentioned
+        """
+        # TODO: check docs and test it
+        # remove named users in text
+        result = re.sub(r'\b@[a-z\d_]{1,15}\b', '', text, flags=re.IGNORECASE)
+        # remove empty chars and some punctuation before returning
+        result = re.sub(r'[\s.:,;-]*', '', result)
+        return len(result) == 0
+
+    @staticmethod
+    def check_text_only_mention_bot(text: str, bot_screen_name: str) -> bool:
+        """
+        Check if text only contain mentions to @bot_screen_name
+        :param text: tweet text
+        :param text: bot_screen_name
+        :return: True iff tweet only contains @bot_screen_name mentioned
+        """
+        # TODO: check docs and test it
+        # remove named users in text
+        result = re.sub(f'@{bot_screen_name}', '', text, flags=re.IGNORECASE)
+        # remove empty chars and some punctuation before returning
+        result = re.sub(r'[\s.:,;-]*', '', result)
+        return len(result) == 0
 
     def process_mentioned_users_in_tweet(self, tweet: tweepy.models.Status) -> None:
         """
@@ -589,24 +630,27 @@ class AltBot:
         """
 
         report = []
-        n = min(MAX_MENTIONS_TO_PROCESS, len(tweet.entities['user_mentions']))
+        # get users mentioned filtering out the bot user
+        mentions_without_bot = [user_mentioned for user_mentioned in tweet.entities['user_mentions']
+                                if user_mentioned['screen_name'].lower() != self.alt_bot_user.screen_name.lower()]
+
+        n = min(MAX_MENTIONS_TO_PROCESS, len(mentions_without_bot))
         tweet_url = self.get_tweet_url(tweet.author.screen_name, tweet.id)
 
         # check the users mentiioned in the tweet
-        for i, user in enumerate(tweet.entities['user_mentions']):
+        for i, user in enumerate(mentions_without_bot, start=1):
 
             logging.debug(f"[{i}/{n}] processing mentioned user: @{user['screen_name']} ({tweet_url})")
 
-            if user['screen_name'] == self.alt_bot_user.screen_name:
-                logging.debug(f'Skip processing this mentioned user since it is the bot itself ({tweet_url}).')
-                continue
-
             score, n_images = self.db.get_percentage_of_alt_text_usage(user['id'])
+
+            logging.debug(f"@{user['screen_name']}: score is {score} in {n_images}")
 
             if score < 0:
                 # user is not in our db; lets get some of its tweets
                 follower = self.db.is_follower(user['id'])
                 allowed = self.db.is_allowed_to_dm(user['id'])
+                logging.debug(f"Processing @{user['screen_name']} account since score < 0 ({score})")
                 # notice that this line will send the user a DM  if needed
                 self.process_account(user['screen_name'], user['id'], follower, allowed, LAST_N_TWEETS)
                 # let's get again its alt_text score
@@ -628,6 +672,13 @@ class AltBot:
             logging.debug(f'reply with report for mentioned accounts')
             self.reply(msg='\n'.join(report), reply_to=tweet.author.screen_name, tweet_id=tweet.id_str)
 
+        # save the processed tweet as processed if needed; notice that the tweet may be already processed
+        # happens when user A (bot's follower or friend) tweets mentioning some accounts,
+        # the watch use case is run; A's tweet is processed
+        # the mentions use case is run, A's tweet mentioning other accounts must be processed again since
+        # now we're checking for accounts mentioned in A's tweet
+        self.db.save_processed_tweet(str(tweet.id), do_not_fail=True)
+
     def process_original_tweets_mentioning_bot(self, tweets: List[tweepy.models.Status]):
         """
         process all original tweets that mention the bot: those tweets that only mention the bot and some other accounts
@@ -637,17 +688,16 @@ class AltBot:
         """
 
         for tweet in tweets:
-            if tweet.author.screen_name == self.alt_bot_user.screen_name:
+            if tweet.author.screen_name.lower() == self.alt_bot_user.screen_name.lower():
                 logging.debug(f'Skip processing this mention since was written by the bot.')
                 continue
             # TODO here we also need to check if no other text than other mention is included and no media contained
             self.process_mentioned_users_in_tweet(tweet)
 
     def process_mentions(self):
-        last_mention_id = 1382671652857786368
+        last_mention_id = self.db.get_last_mention_id()
         mention_tweets = self.get_mentions(last_mention_id)
-        # TODO: make sure not to process itself.
-        # TODO: properly store and manage the last_mention_id/next_mention_id
+
         tweets_in_reply_to_other_mentioning_bot = []
         original_tweets_mentioning_bot = []
         next_last_mention_id = last_mention_id
@@ -659,12 +709,16 @@ class AltBot:
             else:
                 # this tweet is in reply to some other tweet; need to check this previous tweet
                 tweets_in_reply_to_other_mentioning_bot.append(tweet)
+            if tweet.id > next_last_mention_id:
+                next_last_mention_id = tweet.id
 
-        logging.info(f'Processing mentions in original tweets')
+        logging.info(f'[USE CASE] Processing original tweets mentioning the bot')
         self.process_original_tweets_mentioning_bot(original_tweets_mentioning_bot)
 
-        logging.info(f'Processing mentions in tweets that are reply to another')
+        logging.info(f'[USE CASE] Processing tweets that mention the bot AND reply to other tweets')
         self.process_tweets_in_reply_to_other_tweet(tweets_in_reply_to_other_mentioning_bot)
+
+        self.db.update_last_mention_id(next_last_mention_id)
 
     def watch_for_alt_text_usage(self) -> None:
         """
@@ -762,7 +816,6 @@ if __name__ == '__main__':
 
     bot = AltBot(live=False)  # args.live
 
-    tweet = bot.get_tweet(ACCEPT_DM_TWEET_ID)
     # bot.get_mentions(1382671652857786368)
     bot.process_mentions()
 

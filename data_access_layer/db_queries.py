@@ -42,8 +42,20 @@ CREATE_ALLOWED_TO_DM_TABLE = """
                                     );
 """
 
+CREATE_SETTINGS_TABLE = """
+ CREATE TABLE IF NOT EXISTS bot_settings (
+                                        setting_key TEXT PRIMARY KEY,
+                                        setting_value TEXT 
+                                    );
+"""
+
 SAVE_PROCESSED_TWEET = """
 INSERT INTO processed_tweets (tweet_id) 
+      VALUES (?);
+"""
+
+SAVE_PROCESSED_TWEET_NO_FAIL = """
+INSERT OR IGNORE INTO processed_tweets (tweet_id) 
       VALUES (?);
 """
 
@@ -90,3 +102,9 @@ COUNT_FRIENDS = "SELECT Count() FROM friends"
 COUNT_ALLOWED_TO_DM = "SELECT Count() FROM allowed_to_dm"
 
 GET_HISTORIC_SCORE_TABLE = "SELECT n_images, alt_score FROM processed_tweets_alt_text_info WHERE user_id=?;"
+
+GET_SETTING = "SELECT setting_value FROM bot_settings WHERE setting_key=?"
+
+UPDATE_SETTING = "UPDATE bot_settings SET setting_value=? WHERE setting_key=?"
+
+ADD_SETTING = "INSERT INTO bot_settings (setting_key, setting_value) VALUES (?,?);"
