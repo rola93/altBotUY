@@ -7,6 +7,14 @@
 descripciones de hasta 1000 caracteres por imagen, [acá](https://help.twitter.com/es/using-twitter/picture-descriptions)
 hay un tutorial que explica cómo hacerlo.
 
+## Estado: tweet fijado
+
+El tweet fijado contiene información importante respecto al funcionamiento del bot:
+
+<!--html_preserve-->
+<blockquote class="twitter-tweet" data-lang="es" data-dnt="true" data-theme="dark"><p lang="es" dir="ltr">Momentáneamente fuera de servicio: el acceso automatizado al bot está suspendido porque se supone que viola las reglas de automatización 😭😭😭<br>En cuanto quede resuelto, vuelve la programación habitual. <a href="https://t.co/QTd2QBDcYG">pic.twitter.com/QTd2QBDcYG</a></p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1384269443128201218?ref_src=twsrc%5Etfw">19 de abril de 2021</a></blockquote> 
+<!--/html_preserve-->
+
 ## ¿Por qué son importantes los alt_text?
 Básicamente los [alt_text](https://es.wikipedia.org/wiki/Wikipedia:Texto_alternativo_para_las_im%C3%A1genes) son la única forma de acceder a las imágenes para muchas personas, en [este artículo](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility)
 de [@mili_costabel](https://twitter.com/mili_costabel) lo explica mucho mejor (está en inglés), y en
@@ -38,7 +46,7 @@ Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, que si tu cuenta bloquea al bot, otros usuarios no van a poder usar estos servicios de descripción automática de imágenes sobre tus tweets, y se verán 
 perjudicados. **Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_laguna_)** para solucionar cualquier inconveniente o para solicitar que el bot deje de seguirte. 
 
-Actualmente sólo se chequean imágenes: los gifs, videos y similres son ignorados.
+Actualmente sólo se chequean imágenes: los gifs, videos y similares son ignorados.
 
 El bot se ejecuta periódicamente, por lo tanto, entre que el tuit original se postea y AltBotUY lo procesa pueden pasar algunas horas.
 
