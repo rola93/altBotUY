@@ -46,7 +46,7 @@ Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, que si tu cuenta bloquea al bot, otros usuarios no van a poder usar estos servicios de descripción automática de imágenes sobre tus tweets, y se verán 
 perjudicados. **Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_laguna_)** para solucionar cualquier inconveniente o para solicitar que el bot deje de seguirte. 
 
-Actualmente sólo se chequean imágenes: los gifs, videos y similres son ignorados.
+Actualmente sólo se chequean imágenes: los gifs, videos y similares son ignorados.
 
 El bot se ejecuta periódicamente, por lo tanto, entre que el tuit original se postea y AltBotUY lo procesa pueden pasar algunas horas.
 
