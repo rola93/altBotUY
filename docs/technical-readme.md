@@ -54,7 +54,7 @@ currently in production (prod branch). Some of them are closed issues in master,
 [prod] Initial version: check for some hardcoded accounts only and reply them publicly if alt_text is not used.
 
 ## V1.1
-[master] Those changes are not in production yet. A database is first needed to make it robust enough.
+[prod] Those changes are not in production yet. A database is first needed to make it robust enough.
  *  Usage of alt_text is now checked for both: followers and friends. Friends are reply publicly while for followers a 
  DM is sent if possible, otherwise a public tweet inviting them to DM the bot
  * Current version add timestamp to log file
@@ -62,12 +62,32 @@ currently in production (prod branch). Some of them are closed issues in master,
  to images.  
  
  ## V1.2
-[master] Those changes are to put into production next Monday 19th April, after notifying followers with a DM on changes.
+[prod] Those changes are to put into production next Monday 19th April, after notifying followers with a DM on changes.
  * Add a SQLITE database to save processed tweets, followers and friends, making the bot far more efficient  
  * Follow users with private content when tweets can not be read
  * Send DM to maintainer in case of unexpected error
  * Include arg parse to run the bot easier with different use cases
  * Implement broadcast message to followers to share news on the bot
+ 
+ ## V2.0
+[master] This version implies some changes in the bot usage, since the use cases implemented up to the moment did not 
+fit tweeter policies with respect to [automated messages](https://help.twitter.com/en/rules-and-policies/twitter-automation).
+In particular, the bot can not reply to tweets of arbitrary users and only can contact users who doesn't previously
+accept to be contacted. The same is true for DMs, and following the bot is not enough. Also, the followers need a clear
+mechanism to opt-out. So, the use case to watch for friends accounts will be disabled and substituted with the
+process mentions. DMs are still available, but now followers need to explicitly accept to receive DMs by retweeting a 
+special tweet.  
+
+ * Check if followers accepted to be DMed by retweeting a special tweet, configured in `settings.ACCEPT_DM_TWEET_ID`: 
+ only followers who RT this tweet are DMed.
+ * Add check bot mentions use case, with two variants:
+    * Original tweets mentioning the bot and up to 3 (`setting.MAX_MENTIONS_TO_PROCESS`) arbitrary accounts the user 
+    chooses. This user does not need to be friend nor follower. The bot reply to this tweet with a small report
+    with the percentage of images containing alt_text for each account. If the account was never processed, then process 
+    it to read some of its tweets. Only accounts must be mentioned in addition to the bot. If more than 3 are mentioned,
+    only 3 of them are processed.
+    * Tweets that mention the bot in reply to other tweet that contain the image. Then this tweet is reply with an 
+    appropiated message telling if the image contains alt_texts or not.
     
 # ROAD MAP (prioritized):
  * **BUGFIX**: Can not send DMs to all followers since the API start to throw error; maybe need to sleep or 
@@ -75,7 +95,7 @@ currently in production (prod branch). Some of them are closed issues in master,
  * ~~**IMPROVEMENT**: Read the following list and use this instead of the `settings.ACCOUNTS_TO_CHECK`.~~
  * ~~**IMPROVEMENT**: crontab based local deploy, run it once a day~~
  * ~~**IMPROVEMENT**: Follow back followers whose tweets can't be read.~~
- * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (10) are retrieved from tweeter for the configured accounts, 
+ * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (25) are retrieved from tweeter for the configured accounts, 
   then each of them is checked in our local database to see if it was already processed. This is inefficient. 
   We only need to retrieve new tweets since last download to avoid duplicates.
  * ~~**USE CASE**: Add logs to track alt_text usage and later analise how it evolves~~
@@ -117,22 +137,25 @@ Also need to provide the appropiated credentials to connect with Twitter, define
 Information on how to run can be checked with `help` command, as follows:
 
 ```.env
-$   python altBot_main.py --help 
-usage: altBot_main.py [-h] [-u] [-w] [-m MESSAGE] [-l]
+$ python altBot_main.py --help 
+usage: altBot_main.py [-h] [-u] [-wfr] [-wfw] [-m MESSAGE] [-l] [-p]
 
 This script runs AltBotUY.
 
 optional arguments:
   -h, --help            show this help message and exit
   -u, --update-users    Update the local list of followers and friends.
-  -w, --watch-alt-texts
-                        Run the watch-alt-text use case.
+  -wfr, --watch-alt-texts-friends
+                        Run the watch-alt-text use case in friends.
+  -wfw, --watch-alt-texts-followers
+                        Run the watch-alt-text use case in followers.
   -m MESSAGE, --message MESSAGE
                         Send given message to followers. Can also be the path
                         to a text file containing the message.
   -l, --live            Actually send DMs, tweets and favs, otherwise just
                         logs it. Must use it for production.
-
+  -p, --process-mentions
+                        Process tweets where the bot is mentioned.
 ```
 
 # Related work:
