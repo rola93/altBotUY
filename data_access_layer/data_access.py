@@ -111,7 +111,7 @@ class DBAccess:
         return {(row[0], row[1]) for row in self.connection.execute(db_queries.GET_FOLLOWERS)}
 
     def get_allowed_to_dm(self) -> Set[int]:
-        return {(row[1]) for row in self.connection.execute(db_queries.GET_ALLOWED)}
+        return {row[0] for row in self.connection.execute(db_queries.GET_ALLOWED)}
 
     def update_friends(self, new_friends: Set[Tuple[str, int]], lost_friends: Set[Tuple[str, int]]) -> None:
 

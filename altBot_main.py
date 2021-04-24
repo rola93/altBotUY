@@ -351,7 +351,7 @@ class AltBot:
 
         if n_local_friends != n_real_friends or needed:
             local_friends = self.db.get_friends()
-            logging.info(f'Updating local followers...')
+            logging.info(f'Updating local friends...')
             # need to update
             real_friends = self.get_friends_from_api(ALT_BOT_NAME)
             new_friends = real_friends - local_friends
@@ -887,7 +887,8 @@ if __name__ == '__main__':
 
     except Exception as e:
         error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
-        logging.critical(error_msg)
+        # logging.critical(e, exc_info=True)
+        logging.critical(error_msg, exc_info=e)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
 
