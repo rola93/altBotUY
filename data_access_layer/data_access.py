@@ -170,6 +170,19 @@ class DBAccess:
     def count_allowed_to_dm(self) -> int:
         return self.connection.execute(db_queries.COUNT_ALLOWED_TO_DM).fetchone()[0]
 
+    def get_last_tweet_with_info_date(self, user_id: int) -> Optional[datetime]:
+        """
+        return the datime when the last tweet with info was inserted for the user.
+        If no tweets are found for the user, return None
+        :param user_id: user to get the last time his tweet was processed
+        :return: the datetime when last tweet of the user was processed
+        """
+
+        last_update = self.connection.execute(db_queries.MOST_RECENT_WITH_IMAGES, (user_id,)).fetchone()[0]
+        ret = last_update if last_update is None else datetime.strptime(last_update, '%Y-%m-%d %H:%M:%S')
+
+        return ret
+
     def get_percentage_of_alt_text_usage(self, user_id: int) -> Tuple[float, int]:
         """
         Compute the % of images from the user that contain alt text with the number of images considered
@@ -218,6 +231,10 @@ if __name__ == '__main__':
 
     print(db.get_alt_score_from_tweet('hola mundo'))
 
-    print(db.save_processed_tweet('hola'))
+    # print(db.save_processed_tweet('hola'))
     print(db.save_processed_tweet('hola', True))
-    print(db.save_processed_tweet('hola'))
+    # print(db.save_processed_tweet('hola'))
+
+    print(db.get_last_tweet_with_info_date(743235353235042304))
+    print(db.get_last_tweet_with_info_date(74323535))
+    print(db.get_last_tweet_with_info_date(226279188))

@@ -20,8 +20,10 @@ AUTO_REPLY_NO_DM_NO_ALT_TEXT = '☝️ Este tweet sería más inclusivo con el u
 AUTO_REPLY_NO_IMAGES_FOUND = f'☝️ Ese tweet no contiene imágenes...  Por ahora no chequeo otros contenidos (GIFs, ' \
     f'videos, links externos).'
 
-SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en el {score:.2f} % de sus imágenes ({n_images} imágenes analizadas)'
-SINGLE_USER_NO_IMAGES_FOUND = '@{screen_name}: no encontré tweets con imágenes.'
+SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en {score:.1f} % de imágenes, {n_images} analizadas'
+SINGLE_USER_NO_IMAGES_FOUND_REPORT = '@{screen_name}: no encontré tweets con imágenes.'
+HEADER_REPORT = '🔎🗒️ Aquí está tu reporte 🤓👇'  # some emojis not shown in pycharm
+FOOTER_REPORT = f'+ info acá https://rola93.github.io/altBotUY/#reportes'
 
 SINGLE_USER_NO_ALT_TEXT_QUERY = f'☝️ Ese tweet sería más inclusivo con el uso de textos alternativos (alt_text) para ' \
     f'describir  todas sus imágenes... {HELP_ARTICLE_MESSAGE}'

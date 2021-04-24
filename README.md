@@ -23,32 +23,61 @@ interesantes al respecto.
 
 
 ## ¿Cómo funciona AltBotUY?
-La versión actual únicamente implementa la detección de twits con imágenes sin textos alternativos entre sus 
-seguidores y seguidos (a estos últimos los llamaremos amigos), de la siguiente manera:
 
-* **Amigos**: el bot responde al tweet con un tweet que indica lo siguiente:
-       _☝️ Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para 
-       describir  todas sus imágenes... Este artículo te podría ayudar: 
-       https://help.twitter.com/es/using-twitter/picture-descriptions_
-* **Seguidores** el bot responde por mensaje directo al seguidor con el siguiente mensaje: 
-     _Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para describir todas sus imágenes... http://link-al-tweet. Este artículo podría ayudar: https://help.twitter.com/es/using-twitter/picture-descriptions \n 
-      Gracias por seguirme!_
-* **Seguidores sin Mensaje Directo**: si el seguidor no tiene los mensajes directos habilitados, el bot responde con un tweet con el
- siguiente texto: 
- _☝️ Este tweet sería más inclusivo con el uso de textos alternativos (alt_text) para 
-        describir todas sus imágenes... Este artículo podría ayudar: 
-        https://help.twitter.com/es/using-twitter/picture-descriptions \n Gracias por seguirme! Mandame DM para 
-        recordarte por ahí a futuro 😉._
+Actualmente está en función la versión 2 del bot, que implementa algunos cambios en el bot para cumplir las 
+políticas de twiter respecto a [mensajes automatizados](https://help.twitter.com/es/rules-and-policies/twitter-automation).
+Esto recorta posibilidades al bot: no puede contactar a usuarios que no lo deseen. Por otro lado **empodera a los 
+usuarios**, así que recuerden:
 
-Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
-        
-**IMPORTANTE**: Si en algún momento el bot sigue tu cuenta, es porque el contenido de tu cuenta es relevante.
-Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, que si tu cuenta bloquea al bot, otros usuarios no van a poder usar estos servicios de descripción automática de imágenes sobre tus tweets, y se verán 
-perjudicados. **Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_laguna_)** para solucionar cualquier inconveniente o para solicitar que el bot deje de seguirte. 
+![Es un gif con la escena de Spiderman donde el tío Ben le dice "with great power comes great responsabilities"](https://i.pinimg.com/originals/4c/3b/39/4c3b395bb7e3b40b780ac97f287b6ab3.gif)
+
+Su funcionamiento es el siguiente:
+
+* Si lo seguis y autorizas los DMs, el bot te avisa por DM cuando escribas un tweet con imágenes sin alt_text. 
+Para autorizarlo, basta dar RT a [este tweet](). **En cualquier momento podés dejar de usarlo deshaciendolo o dejando 
+de seguir al bot**. 
+
+* Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
+hasta tres cuentas más, [aca tenés un ejemplo]().  
+
+* Podés preguntar si una imagen en particular contiene alt_text. Tenésque mencionar al bot en respuesta a un twit con 
+imágenes (sólo al bot). [Acá podés ver un ejemplo]().
+
+* Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
+
+**MUY IMPORTANTE**: Si en algún momento el bot sigue tu cuenta, es porque el contenido de tu cuenta es relevante.
+Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 
+que si tu cuenta bloquea al bot, otros usuarios no van a poder usar estos servicios de descripción automática de 
+imágenes sobre tus tweets, y se verán perjudicados. 
+**Ponte en contacto con [@ro_laguna_](https://twitter.com/ro_laguna_)** para solucionar cualquier inconveniente o 
+para solicitar que el bot deje de seguirte. 
 
 Actualmente sólo se chequean imágenes: los gifs, videos y similares son ignorados.
 
-El bot se ejecuta periódicamente, por lo tanto, entre que el tuit original se postea y AltBotUY lo procesa pueden pasar algunas horas.
+El bot se ejecuta periódicamente, por lo tanto, entre que el twit se postea y AltBotUY lo procesa pueden 
+pasar algunas horas.
+
+### Otros detalles
+
+Un **seguidor** es cualquier usuario que sigue al bot. Un **amigo** es un usuario seguido por el bot. 
+Si un usuario es amigo y seguidor, el bot lo trata como seguidor.
+
+Los amigos del bot todavía son procesados para mejorar los reportes, pero no reciben ninguna respuesta. 
+En general son cuentas institucionales o de personas importantes. Si hay alguna cuenta que crees que el bot 
+debería seguir, podés sugerirla.
+
+Para pedir un reporte sólo tenés que mencionar hasta tres cuentas deseadas. El bot muestra el porcentaje de imágenes 
+que utilizan alt_text para cada cuenta, y la cantidad de imágenes analizadas. Los reportes se basan en todos los tweets 
+procesados encualquier forma (amigos, seguidores o mencionados). Los aimigos y seguidores se analizan con 
+más frecuencia, de manera que es esperable contar con más imágenes analizadas para ellos.
+
+Si el bot no tiene datos para un usuario, o sus datos tienen más de 3 días, el bot procesa al usuario sin importar si 
+es amigo o seguidor (o ninguno de los dos).
+
+Chequear el uso de alt_text en imágenes sin un lector de pantallas puede ser complicado. Arrobar al bot en respuesta a 
+una imagen puede servir para usuarios curiosos que quieran chequear si alguna imagen relevante contiene alt_text de 
+manera sencila, además contribuye a la visibilidad del bot, ya futuro se va a agregar el OCR/Captioning de esa imagen 
+como respuesta.  
 
 ## Sobre el proyecto
 
@@ -59,8 +88,11 @@ observación bien interesante sobre accesibilidad, alt_text y pandemia. Luego de
 
 ## ¿Qué esperar en el futuro de AltBotUY?
 
-Lo más próximo es la generación de reportes automáticos sobre el uso de alt_text entre los usuarios (amigos y seguidores).
-Aún no está del todo definido, pero la idea es publicar un podio mensual de las cuentas que más lo usan.
+Honestamente, el bloqueo de twitter implicó re-pensar al bot, y mucho trabajo para tenerlo disponible tan pronto
+como era posible, así que la siguiente actualización va a demorar.
+
+Lo más próximo es la generación de reportes automáticos sobre el uso de alt_text a partir de los tweets procesados.
+Aún no está del todo definido, pero la idea es publicar un podio mensual o semanal de las cuentas que más los usan.
 
 Es posible también que incluya algunos tweets manuales con contenido relacionado a los alt_text: reflexiones, ejemplos, 
 consejos.
@@ -72,8 +104,6 @@ A largo plazo, incluir además un servicio de descripción de imágenes (Image C
 doble: por un lado, conseguir mejor infraestructura, y por otro, es necesario ver qué hay de esto en español. 
 Una versión inicial quizá pueda ser con transcripciones en inglés + traducción.
 
-
-Cada novedad del bot será compartida por mensaje directo a sus seguidores.
 
 ## ¿Qué datos almacena AltBotUY?  
 

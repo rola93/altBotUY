@@ -108,3 +108,8 @@ GET_SETTING = "SELECT setting_value FROM bot_settings WHERE setting_key=?"
 UPDATE_SETTING = "UPDATE bot_settings SET setting_value=? WHERE setting_key=?"
 
 ADD_SETTING = "INSERT INTO bot_settings (setting_key, setting_value) VALUES (?,?);"
+
+MOST_RECENT_WITH_IMAGES = """
+Select MAX(processed_at) from processed_tweets_alt_text_info
+WHERE user_id=?;
+"""
