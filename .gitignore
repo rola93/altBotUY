@@ -130,3 +130,4 @@ dmypy.json
 
 .idea/
 settings_prod.py
+data_access_layer/*.db
