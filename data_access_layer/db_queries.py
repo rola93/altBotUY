@@ -95,11 +95,11 @@ ADD_FOLLOWER = "INSERT INTO followers (screen_name, user_id) VALUES (?,?);"
 
 ADD_ALLOWED_TO_DM = "INSERT INTO allowed_to_dm (user_id) VALUES (?);"
 
-COUNT_FOLLOWERS = "SELECT Count() FROM followers"
+COUNT_FOLLOWERS = "SELECT Count(*) FROM followers"
 
-COUNT_FRIENDS = "SELECT Count() FROM friends"
+COUNT_FRIENDS = "SELECT Count(*) FROM friends"
 
-COUNT_ALLOWED_TO_DM = "SELECT Count() FROM allowed_to_dm"
+COUNT_ALLOWED_TO_DM = "SELECT Count(*) FROM allowed_to_dm"
 
 GET_HISTORIC_SCORE_TABLE = "SELECT n_images, alt_score FROM processed_tweets_alt_text_info WHERE user_id=?;"
 
