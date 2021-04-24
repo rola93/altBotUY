@@ -538,12 +538,12 @@ class AltBot:
                 logging.debug(f'skipping mention since not only the bot was named: {mention.text}')
                 logging.debug(self.get_tweet_url(mention.author.screen_name, mention.id))
 
-    def process_mention_in_reply_to_tweet(self, tweet):
+    def process_mention_in_reply_to_tweet(self, tweet) -> None:
         """
         mention is a tweet which mentioned AltBotUY in reply to another tweet; need to get this another tweet and
         check to see if there are images in it, with or without alt_text.
         :param tweet:
-        :return:
+        :return None:
         """
         tweet_to_process_screen_name = tweet.in_reply_to_screen_name  # type: str
         tweet_to_process_user_id = tweet.in_reply_to_user_id  # type: int
@@ -875,7 +875,7 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    bot = AltBot(live=False)  # args.live
+    bot = AltBot(live=args.live)
 
     try:
         logging.debug(f'Running bot with args {args}')

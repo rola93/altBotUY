@@ -34,14 +34,14 @@ usuarios**, así que recuerden:
 Su funcionamiento es el siguiente:
 
 * Si lo seguis y autorizas los DMs, el bot te avisa por DM cuando escribas un tweet con imágenes sin alt_text. 
-Para autorizarlo, basta dar RT a [este tweet](). **En cualquier momento podés dejar de usarlo deshaciendolo o dejando 
-de seguir al bot**. 
+Para autorizarlo, basta dar RT a [este tweet](https://twitter.com/AltBotUY/status/1385971762819706888). 
+**En cualquier momento podés dejar de usarlo deshaciendolo o dejando de seguir al bot**. 
 
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
-hasta tres cuentas más, [aca tenés un ejemplo]().  
+hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1385964849264484356).  
 
 * Podés preguntar si una imagen en particular contiene alt_text. Tenésque mencionar al bot en respuesta a un twit con 
-imágenes (sólo al bot). [Acá podés ver un ejemplo]().
+imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1385965090772504580).
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
 

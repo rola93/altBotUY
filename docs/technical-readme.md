@@ -95,7 +95,7 @@ special tweet.
  * ~~**IMPROVEMENT**: Read the following list and use this instead of the `settings.ACCOUNTS_TO_CHECK`.~~
  * ~~**IMPROVEMENT**: crontab based local deploy, run it once a day~~
  * ~~**IMPROVEMENT**: Follow back followers whose tweets can't be read.~~
- * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (10) are retrieved from tweeter for the configured accounts, 
+ * **IMPROVEMENT**: Currently, last `settings.LAST_N_TWEETS` (25) are retrieved from tweeter for the configured accounts, 
   then each of them is checked in our local database to see if it was already processed. This is inefficient. 
   We only need to retrieve new tweets since last download to avoid duplicates.
  * ~~**USE CASE**: Add logs to track alt_text usage and later analise how it evolves~~

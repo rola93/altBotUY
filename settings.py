@@ -27,5 +27,5 @@ MAINTEINER_NAME = 'ro_laguna_'
 MAINTAEINER_ID = 537304416
 
 # ID of the tweet that users must RT to allow for DMs:
-# https://twitter.com/AltBotUY/status/1382672684195192835
-ACCEPT_DM_TWEET_ID = 1382672684195192835
+# https://twitter.com/AltBotUY/status/1385971762819706888
+ACCEPT_DM_TWEET_ID = 1385971762819706888
