@@ -7,20 +7,11 @@
 descripciones de hasta 1000 caracteres por imagen, [acá](https://help.twitter.com/es/using-twitter/picture-descriptions)
 hay un tutorial que explica cómo hacerlo.
 
-## Estado: tweet fijado
-
-El tweet fijado contiene información importante respecto al funcionamiento del bot:
-
-<!--html_preserve-->
-<blockquote class="twitter-tweet" data-lang="es" data-dnt="true" data-theme="dark"><p lang="es" dir="ltr">Momentáneamente fuera de servicio: el acceso automatizado al bot está suspendido porque se supone que viola las reglas de automatización 😭😭😭<br>En cuanto quede resuelto, vuelve la programación habitual. <a href="https://t.co/QTd2QBDcYG">pic.twitter.com/QTd2QBDcYG</a></p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1384269443128201218?ref_src=twsrc%5Etfw">19 de abril de 2021</a></blockquote> 
-<!--/html_preserve-->
-
 ## ¿Por qué son importantes los alt_text?
 Básicamente los [alt_text](https://es.wikipedia.org/wiki/Wikipedia:Texto_alternativo_para_las_im%C3%A1genes) son la única forma de acceder a las imágenes para muchas personas, en [este artículo](https://www.lacunavoices.com/explore-world-with-lacuna-voices/being-blind-in-digital-world-social-media-inernet-accessibility)
 de [@mili_costabel](https://twitter.com/mili_costabel) lo explica mucho mejor (está en inglés), y en
 [este hilo](https://twitter.com/mili_costabel/status/1383129606803369990) (en español) hay un montón de reflexiones 
 interesantes al respecto. 
-
 
 ## ¿Cómo funciona AltBotUY?
 
@@ -33,12 +24,12 @@ usuarios**, así que recuerden:
 
 Su funcionamiento es el siguiente:
 
-* Si lo seguis y autorizas los DMs, el bot te avisa por DM cuando escribas un tweet con imágenes sin alt_text. 
+* Si lo seguis y **autorizas los DMs**, el bot te envía un recordatorio por DM cuando escribas un tweet con imágenes sin alt_text. 
 Para autorizarlo, basta dar RT a [este tweet](). **En cualquier momento podés dejar de usarlo deshaciendolo o dejando 
 de seguir al bot**. 
 
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
-hasta tres cuentas más, [aca tenés un ejemplo]().  
+hasta tres cuentas más, [acá tenés un ejemplo]().  
 
 * Podés preguntar si una imagen en particular contiene alt_text. Tenésque mencionar al bot en respuesta a un twit con 
 imágenes (sólo al bot). [Acá podés ver un ejemplo]().
@@ -86,6 +77,14 @@ El proyecto surgió una noche de Netflix mirando una serie algo aburrida, me enc
 observación bien interesante sobre accesibilidad, alt_text y pandemia. Luego de intercambiar algunas ideas,
  agarré la máquina y me puse a escribir... Veremos a dónde nos lleva...
 
+## Estado: tweet fijado
+
+El tweet fijado contiene información importante respecto al funcionamiento del bot:
+
+<!--html_preserve-->
+<blockquote class="twitter-tweet" data-lang="es" data-dnt="true" data-theme="dark"><p lang="es" dir="ltr">Momentáneamente fuera de servicio: el acceso automatizado al bot está suspendido porque se supone que viola las reglas de automatización 😭😭😭<br>En cuanto quede resuelto, vuelve la programación habitual. <a href="https://t.co/QTd2QBDcYG">pic.twitter.com/QTd2QBDcYG</a></p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1384269443128201218?ref_src=twsrc%5Etfw">19 de abril de 2021</a></blockquote> 
+<!--/html_preserve-->
+
 ## ¿Qué esperar en el futuro de AltBotUY?
 
 Honestamente, el bloqueo de twitter implicó re-pensar al bot, y mucho trabajo para tenerlo disponible tan pronto
@@ -119,7 +118,7 @@ Si querés saber más al respecto, no dudes en escribir!
 
 ## Información técnica
 La descripción técnica del bot, podés encontrarla [acá](docs/technical-readme.md), está en inglés.
-Contiene instruccciones y requerimientos para ejecutar el bot, así como la descripción de su funcionamiento.
+Contiene instruccciones y requerimientos para ejecutar el bot, así como la descripción de su funcionamiento. Bienvenidos esos PRs!
 
 # Proyectos relacionados:
 
@@ -131,3 +130,6 @@ describirla. Ambos están en inglés,
 [@AltTxtReminder](https://twitter.com/AltTxtReminder) es otro bot que sugiere el uso de alt_text a sus seguidores cuando 
 no lo utilizan, mediante mensaje directo.  Hay otro bot similar, [@AltTextCrew](https://twitter.com/AltTextCrew) que retwitea 
 contenido que necesita una descripción. Ambos proyectos también están en inglés.
+
+# AltBotUY en la prensa
+* [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, 19/06/2021
