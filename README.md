@@ -133,3 +133,7 @@ contenido que necesita una descripción. Ambos proyectos también están en ingl
 
 # AltBotUY en la prensa
 * [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, 19/06/2021
+
+## Otros artículos disponibles
+ * [¿Cómo ver el alt-text de una imagen?](docs/mostrar-alt-texts.md)
+ * [Technical readme](docs/technical-readme.md)
