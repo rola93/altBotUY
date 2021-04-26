@@ -108,4 +108,4 @@ Para terminar, estamos analizando incluir como funcionalidad, obtener el `alt_te
 para simplificar este proceso. Al contestar un tweet con imagen mencionando sólo al bot, luego el bot contesta con el alt_text si lo contiene, 
 o con un mensaje acorde/recordatorio acorde si no lo tiene.
 
-**[Volver a la página principal](/README.md)**
+**[Volver a la página principal](/altBotUY)**
