@@ -17,7 +17,7 @@ y en la app del cel seguro no funciona).
 Cuando subimos una imagen con alt_text, como en [este tweet](https://twitter.com/ro_laguna_/status/1383906634171224072),
 twitter nos muestra abajo de la imagen, a la izquierda un icono que dice `alt` indicando que esa imagen tiene un alt_text:
  
-![Captura de pantalla de un tweet con una foto de mi perro Latte. Abajo a la izquierda se ve el ícono que dice alt](https://github.com/rola93/altBotUY/tree/master/docs/media/latte_icono_alt_resaltado.png)
+![Captura de pantalla de un tweet con una foto de mi perro Latte. Abajo a la izquierda se ve el ícono que dice alt](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_icono_alt_resaltado.png?raw=true)
 
 Sin embargo, esto **sólo lo hace para las imágenes que subimos nosotros**: 
 cuando alguien más sube una imagen con alt_text, twitter no nos informa nada al respecto. La primera vez que lo ví,
@@ -49,7 +49,7 @@ el navegador la omite por completo.
 Para ver el código crudo que recibe el navegador, y en particular esas etiquetas que contienen el texto buscado, vamos a hacer click derecho 
 sobre la imagen y seleccionar la opción  `inspeccionar`. 
 
-![Se muestra la misma captura anterior, en la que hicimos click derecho, y aparecen un montón de opciones.](https://github.com/rola93/altBotUY/tree/master/docs/media/latte_click_derecho.png)
+![Se muestra la misma captura anterior, en la que hicimos click derecho, y aparecen un montón de opciones.](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_click_derecho.png?raw=true)
 
 Esto abre una pequeña ventana que muestra un montón de información, entre otras cosas, 
 el código que se está ejecutandoen el navegador. Generalmente, se resalta de azul/celeste la parte de código que corresponde a la imagen.
@@ -57,7 +57,7 @@ el código que se está ejecutandoen el navegador. Generalmente, se resalta de a
 Ahí hay que buscar la etiqueta imagen, y dentro de ella, la propiedad `alt`:
 
 ![Se muestra la captura anterior, con el panel a la derecha que contiene el códgo utilizado por el navegador, 
-y en particular el código correspondiente a la imagen](https://github.com/rola93/altBotUY/tree/master/docs/media/latte_twit_y_herramienta.png)
+y en particular el código correspondiente a la imagen](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_twit_y_herramienta.png?raw=true)
 
 
 A veces el texto se muestra cortado con puntos suspensivos en medio: en esos casos basta darle doble click al 
@@ -87,7 +87,7 @@ Si bien este método requiere varios pasos y alprincipio resulta algo engorroso,
  [en esta noticia de Montevideo Portal](https://www.montevideo.com.uy/Noticias/Colectivo-Ciudad-Abierta-reclama-a-la-IM-que-vuelva-a-peatonalizar-la-rambla-los-domingos-uc784646):
  
  
-![Captura de pantalla del nevegador. A la izquierda se ve la noticia y a la derecha el cuadro de herramientas de inspección](https://github.com/rola93/altBotUY/tree/master/docs/media/ejemplo_montevideo_portal.png)
+![Captura de pantalla del nevegador. A la izquierda se ve la noticia y a la derecha el cuadro de herramientas de inspección](https://github.com/rola93/altBotUY/blob/master/docs/media/ejemplo_montevideo_portal.png?raw=true)
 
 En particular, la etiqueta HTML que contiene el alt_text es la siguiente: 
 
