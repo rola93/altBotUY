@@ -122,7 +122,7 @@ alternativos de la página y no solo el de Latte, e incluso se muestran los text
 
 ![Se muestra la captura que contiene la descripción de varias imágenes que figuran en la página, y otros elementos, como la cantidad de seguidores](https://github.com/rola93/altBotUY/blob/master/docs/media/inspeccionar-accesibilidad-firefox.png?raw=true)
 
-Espero que el artículo sea de utilidad, y muchas gracias por llegar asta acá!
+Espero que el artículo sea de utilidad, y muchas gracias por llegar hasta acá!
 
 
 **[Volver a la página principal](/altBotUY)**
