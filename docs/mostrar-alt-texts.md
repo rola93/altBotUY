@@ -1,40 +1,40 @@
 # ¿Cómo saber si una imagen contiene alt_text?
 
 Esta pregunta es muy válida. Si contamos con un lector de pantallas, 
-es sencillo: al llegar a la imagen, el lector lo va a leer.
+es sencillo: al llegar a la imagen, el lector lo va leer el alt_text.
 
 ¿Y si no?
 
-En este breve artículo presentamos una forma alternativa de hacerlo, enfocándonos en twitter, aunque sirve para cualquier página.
+En este breve artículo se presenta una forma alternativa de hacerlo, enfocado en Twitter, aunque sirve para cualquier página.
 Quizá pueda parecer engorrosa pero es bastante sencilla.
 
-Algunos comentarios más antes de empezar: la funcionalidad que vamos a ver no es 
+Algunos comentarios más antes de empezar: la funcionalidad que se verá no es 
 exclusivamente para esto, sino que es una herramienta que utilizan desarrolladores 
 web cuando crean un sitio o aplicación web. Por otro lado, esto aplica para 
-cuando vemos tweets desde el navegador de la computadora (en el navegador del celular puede que sea algo distinto, 
+cuando vemos tweets desde el navegador de la computadora (en el navegador del celular, si funciona, probablemente sea distinto, 
 y en la app del cel seguro no funciona).
 
 Cuando subimos una imagen con alt_text, como en [este tweet](https://twitter.com/ro_laguna_/status/1383906634171224072),
-twitter nos muestra abajo de la imagen, a la izquierda un icono que dice `alt` indicando que esa imagen tiene un alt_text:
+Twitter nos muestra abajo, a la izquierda un ícono que dice `alt` indicando que esa imagen tiene un alt_text:
  
 ![Captura de pantalla de un tweet con una foto de mi perro Latte. Abajo a la izquierda se ve el ícono que dice alt](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_icono_alt_resaltado.png?raw=true)
 
 Sin embargo, esto **sólo lo hace para las imágenes que subimos nosotros**: 
-cuando alguien más sube una imagen con alt_text, twitter no nos informa nada al respecto. La primera vez que lo ví,
+cuando alguien más sube una imagen con alt_text, Twitter no nos informa nada al respecto. La primera vez que lo ví,
 pensé que al clickearlo podría ver el alt_text que tenía la imagen, pero esto tampoco ocurre: no hay una forma 
 sencilla de hacerlo.
 
 Recientemente [alguien comentó](https://twitter.com/SarAusten/status/1386002316055269384) que utilizando 
-[tweet Deck](https://tweetdeck.twitter.com) se muestran estos alt_text; la verdad 
+[Tweet Deck](https://tweetdeck.twitter.com) se muestran estos alt_text; la verdad 
 es que aun no lo he probado, y tampoco es una aplicación que use.
 
 ¿Por qué querríamos ver los alt_text? Es una buena forma de mejorar nuestras propias descripciones a partir de leer 
-las que generan otros, tomar ideas.
+las que generan otros.
 
 Pero primero lo primero: una página web no es más que un montón de instrucciones que recibe tu navegador sobre qué y cómo mostrarte.
-Esto lo recibe en un lenguaje llamado html, donde todo se organiza en etiquetas.
+Esto lo recibe en un lenguaje llamado HTML, donde todo se organiza en etiquetas.
 
-Para mostrar una imagen por ejemplo, recibe una etiqueta que le indica que debe mostrar una imagen,
+Para mostrar una imagen, por ejemplo, recibe una etiqueta que le indica que debe mostrar una imagen,
  con determinadas características, entre ellas, el alt_text, como en este ejemplo:
  
 ```html
@@ -54,7 +54,7 @@ sobre la imagen y seleccionar la opción  `inspeccionar`.
 Esto abre una pequeña ventana que muestra un montón de información, entre otras cosas, 
 el código que se está ejecutandoen el navegador. Generalmente, se resalta de azul/celeste la parte de código que corresponde a la imagen.
 
-Ahí hay que buscar la etiqueta correspondiente a la imagen, `<img`, y dentro de ella, la propiedad `alt`:
+Ahí hay que buscar la etiqueta correspondiente a la imagen, comienza donde dice **`<img`** y termina con **`>`**. Dentro de ella, las propiedades tienen la siguiente sintaxis **`nombre_propiedad="valor"`**. En particular, nos interesa la propiedad `alt`, cuyo valor es el alt_text:
 
 ![Se muestra la captura anterior, con el panel a la derecha que contiene el códgo utilizado por el navegador, 
 y en particular el código correspondiente a la imagen](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_twit_y_herramienta.png?raw=true)
@@ -91,36 +91,41 @@ srcset="https://imagenes.montevideo.com.uy/imgnoticias/202104/_W320_80/759739.jp
 alt="En bici o a pata">
 ```
 
-No le puseron mucho amor a la descripción, la verdad... El tema es que los portales de noticias en general los llenan 
+No le puseron mucho amor a la descripción, la verdad... La cuestión es que los portales de noticias, en general, los llenan 
 sólo para cumplir, porque los motores de búsqueda los posicionan mejor.
 
-Volviendo al punto, si ven la etiqueta HTML de Montevideo Portal, es un poco distinta a las de twitter: el tema es que 
-lo básico es poner la fuente de la imagen (source, src), el resto es todo opcional, incluso el orden. Incluso, podría 
-no tener alt_text directamente.    
+Volviendo al punto, si ven la etiqueta HTML de Montevideo Portal, es un poco distinta a las de Twitter: el tema es que 
+lo básico es poner la fuente de la imagen (source, src), el resto es todo opcional, incluso el orden en que aparecen las propiedades. Directamente, podría 
+no tener alt_text.    
 
-Para terminar, estamos analizando incluir como funcionalidad, obtener el `alt_text` de una imagen, si el usuario la incluyó, 
-para simplificar este proceso. Al contestar un tweet con imagen mencionando sólo al bot, luego el bot contesta con el alt_text si lo contiene, 
-o con un mensaje acorde/recordatorio acorde si no lo tiene.
+Para simplificar este proceso, la próxima versión de AltBotUY incluirá la posibilidad de obtener el `alt_text` de una imagen, si el usuario la incluyó. 
+Para ello, se deberá contestar el tweet con imagen de la que deseamos conocer el alt_text incluido por el usuario, mencionando sólo al bot. Luego, el bot contestará con el alt_text si lo contiene, o con un mensaje recordatorio si no lo tiene.
 
+## Bonus track: ejemplos en otros navegadores, Mozilla Firefox en PC y Chrome desde el móvil
 
-Por último, esto puede variar un poco de navegador a navegador, e incluso un mismo navegador puede estar configurado 
-algo diferente (colores, ubicaciones, contenido), pero en twitter la propiedad alt **siempre está**. Los ejemplos que mostré ahsta ahora son tomados 
+El truco que describí hasta acá puede variar un poco de navegador a navegador, e incluso un mismo navegador puede estar configurado 
+algo diferente (colores, ubicaciones, contenido), pero en Twitter la propiedad `alt` **siempre está**. Los ejemplos que mostré hasta ahora son tomados 
 desde [Brave](http://brave.com) que es el navegador que uso, y es lo mismo para 
-[Chrome](https://www.google.com/intl/es/chrome/). Ahora les dejo algunas capturas que tomé de lo mismo, con 
+[Chrome](https://www.google.com/intl/es/chrome/). Acá les dejo algunas capturas que tomé de lo mismo, con 
 [Firefox](https://www.mozilla.org/es-ES/firefox/new/).
 
 ![En esta imagen se muestra el menu que se desplega cuando damos click derecho a la imagen desde firefox](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_click_derecho_mozilla.png?raw=true)
 
-Acá vamos de nuevo a la opción Inspeccionar, y lo que se abre es casi lo mismo: cambia un poco la estética, pero en si, el contenido que nos interesa
+Se puede ver de nuevo a la opción Inspeccionar, y lo que se abre es casi lo mismo: cambia un poco la estética, pero en si, el contenido que nos interesa
 es el mismo. En este caso, el texto se muestra comprimido con puntos suspensivos en medio. Para ver el texto completo, basta dar doble click al texto.
 
 ![Se muestra de fondo el mismo tweet de Latte, y abajo, la herramienta para explorar el código de la página.](https://github.com/rola93/altBotUY/blob/master/docs/media/latte_panel_firefox.png?raw=true)
 
-Una opción alternativa, que acabo de encontrar en el navegador y no sé que tan disponible esté en otros, es la opción 
+Una opción alternativa, que acabo de encontrar en FireFox y no sé que tan disponible esté en otros, es la opción 
 `Inspeccionar elementos de accesibilidad` cuando hacemos click derecho. En este caso, se despliega un panel similar, pero que muestra todos los textos
-alternativos de la página y no solo el de Latte, e incluso se muestran los textos correspondientes a otros botones o partes de la página.
+alternativos de la página y no sólo el de Latte, e incluso se muestran los textos correspondientes a otros botones o partes de la página.
 
 ![Se muestra la captura que contiene la descripción de varias imágenes que figuran en la página, y otros elementos, como la cantidad de seguidores](https://github.com/rola93/altBotUY/blob/master/docs/media/inspeccionar-accesibilidad-firefox.png?raw=true)
+
+
+Por último, probando con el navegador del celular, Chrome, al dejar presionada una imagen, se despliega un menú que incluye el alt_text de la imagen si lo tiene, como puede verse en la siguiente captura:
+
+![Captura de pantalla en el celular. El primer item del menu desplegado muestra el alt text que corresponde con el de una imagen de Latte, la primera de este artículo.](https://github.com/rola93/altBotUY/blob/master/docs/media/captura_chrome_movil_alt_text.jpeg?raw=true)
 
 Espero que el artículo sea de utilidad, y muchas gracias por llegar hasta acá!
 
