@@ -8,9 +8,9 @@ from typing import List, Optional, Set, Union, Tuple
 
 import tweepy
 
-from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
+from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
     SINGLE_USER_NO_IMAGES_FOUND_REPORT, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY,\
-    HEADER_REPORT, FOOTER_REPORT
+    HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -38,7 +38,7 @@ class AltBot:
         self.live = live
 
         self.processed_tweets = set()  # type: Set[str]
-        self.db_file = DB_FILE if live else DB_FILE + '-alive.db'
+
         self.db = DBAccess(DB_FILE)
 
         self.api = None  # type: tweepy.API
@@ -221,6 +221,31 @@ class AltBot:
 
         logging.debug(f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
 
+    def reply_thread(self, reply_to: str, thread_message: List[str], tweet_id: str) -> None:
+        """
+        Write a tweet in response to the tweet_id with te message msg;
+        :param reply_to: string containing the user to reply the tweet
+        :param thread_message: list of messages to tweet as a thread
+        :param tweet_id: tweet ID to reply
+        :return: None
+        """
+
+        for single_message in thread_message:
+            msg = f'@{reply_to} {single_message}'
+
+            if self.live:
+                try:
+                    status = self.api.update_status(
+                        status=msg,
+                        in_reply_to_status_id=tweet_id
+                    )
+                    tweet_id = status.id
+                except tweepy.error.TweepError as tw_error:
+                    logging.error(f'Can not send tweet to {reply_to} in reply '
+                                  f'to {self.get_tweet_url(reply_to, tweet_id)}: {tw_error}')
+            logging.debug(
+                f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
+
     def direct_message(self, recipient_name: str, recipient_id: int, msg: str) -> int:
         """
         send a direct message with the msg tex to the message_to user
@@ -286,6 +311,37 @@ class AltBot:
     # endregion
 
     # region: main logic
+
+    @staticmethod
+    def split_text_in_tweets(text: str, max_len: int = 250) -> List[str]:
+        """
+        Split the given string text into a list of strings where each string is shorter than max_len
+        :param text: text to be split
+        :param max_len: max number of char for each string in result
+        :return: list of strings where each of them is shorter than specified
+        """
+        result = []
+
+        words = text.split(' ')
+        n = 0
+        j = 0
+        for i, word in enumerate(words):
+            n += len(word) + 1  # +1 to consider spaces
+
+            if n >= max_len:
+                result.append(' '.join(words[j:i]))
+                j = i
+                n = len(word)
+
+        result.append(' '.join(words[j:]))
+
+        for r in result:
+            print(f'{len(r)}/{max_len}: {r}')
+            print('='*10)
+
+        assert sum([len(m.replace(' ', '')) for m in result]) == len(text.replace(' ', ''))
+        assert all([len(m) <= max_len for m in result])
+        return result
 
     def update_followers_if_needed(self, needed: bool) -> None:
         """
@@ -548,10 +604,10 @@ class AltBot:
         tweet_to_process_screen_name = tweet.in_reply_to_screen_name  # type: str
         tweet_to_process_user_id = tweet.in_reply_to_user_id  # type: int
         tweet_to_process_tweet_id = tweet.in_reply_to_status_id  # type: int
-        tweet_to_process_url = self.get_tweet_url(tweet_to_process_screen_name, tweet_to_process_tweet_id)
+        tweet_to_process_url = self.get_tweet_url(tweet_to_process_screen_name, str(tweet_to_process_tweet_id))
 
-        tweet_to_reply_screen_name = tweet.author.screen_name
-        tweet_to_reply_id = tweet.author.id_str
+        tweet_to_reply_screen_name = tweet.author.screen_name  # str
+        tweet_to_reply_id = tweet.id_str  # type: str
 
         if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
             logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
@@ -560,13 +616,16 @@ class AltBot:
             if alt_text_score is None:
                 # the tweet does not contain an image
                 logging.debug(f'Tweet being reply was already processed and does not contain images')
-                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_IMAGES_FOUND, tweet_to_reply_id)
+                self.reply(tweet_to_reply_screen_name,
+                           AUTO_REPLY_NO_IMAGES_FOUND.format(tweet_to_process_screen_name), tweet_to_reply_id)
             elif alt_text_score < 1:
                 logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
-                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_to_reply_id)
+                self.reply(tweet_to_reply_screen_name,
+                           SINGLE_USER_NO_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
             else:
                 logging.debug(f'Tweet being reply was already processed and ALL images contain alt_text')
-                self.reply(tweet_to_reply_screen_name, SINGLE_USER_WITH_ALT_TEXT_QUERY, tweet_to_reply_id)
+                self.reply(tweet_to_reply_screen_name,
+                           SINGLE_USER_WITH_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
         else:
             # tweet is not in our DB; we need to get it from the API and process accordingly
             alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
@@ -575,7 +634,8 @@ class AltBot:
                 # skip since the tweet does not contain images
                 logging.debug(f'This tweet is not interesting for us: {tweet_to_process_url}')
                 self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
-                self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_IMAGES_FOUND, tweet_to_reply_id)
+                self.reply(tweet_to_reply_screen_name,
+                           AUTO_REPLY_NO_IMAGES_FOUND.format(tweet_to_process_screen_name), tweet_to_reply_id)
             else:
 
                 alt_text_score = self.compute_alt_text_score(alt_texts)
@@ -584,12 +644,14 @@ class AltBot:
                     # all of the images contains alt_text, let's like it
                     logging.debug(f'All images in tweet contain alt texts: {tweet_to_process_url}')
                     self.fav_tweet(str(tweet_to_process_tweet_id))
-                    self.reply(tweet_to_reply_screen_name, SINGLE_USER_WITH_ALT_TEXT_QUERY, tweet_to_reply_id)
+                    self.reply(tweet_to_reply_screen_name,
+                               SINGLE_USER_WITH_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
                 else:
                     # some images with out alt_text; reply the tweet with proper message
                     logging.debug(f'Some images ({alt_text_score * 100} %) in tweet does not contain '
                                   f'alt texts: {tweet_to_process_url}')
-                    self.reply(tweet_to_reply_screen_name, AUTO_REPLY_NO_ALT_TEXT, tweet_to_reply_id)
+                    self.reply(tweet_to_reply_screen_name,
+                               SINGLE_USER_NO_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
                     # also reply to the author if needed
                     if self.db.is_allowed_to_dm(tweet_to_process_user_id) and self.db.is_follower(
                             tweet_to_process_user_id):
@@ -887,7 +949,7 @@ if __name__ == '__main__':
 
     except Exception as e:
         error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
-        # logging.critical(e, exc_info=True)
+
         logging.critical(error_msg, exc_info=e)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         bot.direct_message(MAINTEINER_NAME, MAINTAEINER_ID, f'[{now}] \n {error_msg}')
