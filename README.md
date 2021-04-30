@@ -29,12 +29,16 @@ Para autorizarlo, basta dar RT a [este tweet](https://twitter.com/AltBotUY/statu
 **En cualquier momento podés dejar de usarlo deshaciendolo o dejando de seguir al bot**. 
 
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
-hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1387866272705261569).  
+hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1387866272705261569). 
+
+![Captura de pantalla del tweet anterior que muestra el pedido del reporte, y la respuesta.](https://pbs.twimg.com/media/E0QMRefXMAUySF_?format=jpg&name=large)
 
 * Podés preguntar si una imagen en particular contiene alt_text. Tenés que mencionar al bot en respuesta a un tweet con 
 imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682).
 
-* Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
+![Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito](https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large)
+
+* Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
 **MUY IMPORTANTE**: Si en algún momento el bot sigue tu cuenta, es porque el contenido de tu cuenta es relevante.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 
@@ -79,10 +83,10 @@ observación bien interesante sobre accesibilidad, alt_text y pandemia. Luego de
 
 ## Estado: tweet fijado
 
-El tweet fijado contiene información importante respecto al funcionamiento del bot:
+El [tweet fijado](https://twitter.com/AltBotUY/status/1388263808393678850) contiene información importante respecto al funcionamiento del bot:
 
 <!--html_preserve-->
-<blockquote class="twitter-tweet" data-lang="es" data-dnt="true" data-theme="dark"><p lang="es" dir="ltr">Momentáneamente fuera de servicio: el acceso automatizado al bot está suspendido porque se supone que viola las reglas de automatización 😭😭😭<br>En cuanto quede resuelto, vuelve la programación habitual. <a href="https://t.co/QTd2QBDcYG">pic.twitter.com/QTd2QBDcYG</a></p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1384269443128201218?ref_src=twsrc%5Etfw">19 de abril de 2021</a></blockquote> 
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">Seguime y autorizá los DMs 📩 para poder avisarte cuando olvides utilizar alt_text en tus imágenes.<br>La autorización es muy sencilla: debes dar RT 🔃 al tweet que cito aquí 👉<a href="https://t.co/QJHsyqC2Ns">https://t.co/QJHsyqC2Ns</a><br>Además...</p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1388263808393678850?ref_src=twsrc%5Etfw">April 30, 2021</a></blockquote>
 <!--/html_preserve-->
 
 ## ¿Qué esperar en el futuro de AltBotUY?
