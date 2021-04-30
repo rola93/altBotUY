@@ -29,10 +29,10 @@ Para autorizarlo, basta dar RT a [este tweet](https://twitter.com/AltBotUY/statu
 **En cualquier momento podés dejar de usarlo deshaciendolo o dejando de seguir al bot**. 
 
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
-hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1385964849264484356).  
+hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1387866272705261569).  
 
-* Podés preguntar si una imagen en particular contiene alt_text. Tenésque mencionar al bot en respuesta a un twit con 
-imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1385965090772504580).
+* Podés preguntar si una imagen en particular contiene alt_text. Tenés que mencionar al bot en respuesta a un tweet con 
+imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682).
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
 
@@ -67,7 +67,7 @@ es amigo o seguidor (o ninguno de los dos).
 
 Chequear el uso de alt_text en imágenes sin un lector de pantallas puede ser complicado. Arrobar al bot en respuesta a 
 una imagen puede servir para usuarios curiosos que quieran chequear si alguna imagen relevante contiene alt_text de 
-manera sencila, además contribuye a la visibilidad del bot, ya futuro se va a agregar el OCR/Captioning de esa imagen 
+manera sencila, además contribuye a la visibilidad del bot, y a futuro se va a agregar el OCR/Captioning de esa imagen 
 como respuesta.  
 
 ## Sobre el proyecto
