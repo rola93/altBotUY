@@ -36,7 +36,8 @@ hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/
 <center/>
 
 * Podés preguntar si una imagen en particular contiene alt_text. Tenés que mencionar al bot en respuesta a un tweet con 
-imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682).
+imágenes (sólo al bot). 
+[Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682):
 
 <center>
 <img src="https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito">
@@ -141,6 +142,7 @@ contenido que necesita una descripción. Ambos proyectos también están en ingl
 
 # AltBotUY en la prensa
 * [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, 19/04/2021
+* [Rodrigo Laguna, creador de una app para ciegos en internet](https://www.canal10.com.uy/rodrigo-laguna-creador-una-app-ciegos-internet-n746089), La Mañana en casa, Canal 10, 03/05/2021
 
 ## Otros artículos disponibles
  * [¿Cómo ver el alt-text de una imagen?](docs/mostrar-alt-texts.md)
