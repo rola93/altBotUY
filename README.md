@@ -31,17 +31,15 @@ Para autorizarlo, basta dar RT a [este tweet](https://twitter.com/AltBotUY/statu
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
 hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1387866272705261569). 
 
-<center>
 <img src="https://pbs.twimg.com/media/E0QMRefXMAUySF_?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra el pedido del reporte, y la respuesta.">
-<center/>
 
 * Podés preguntar si una imagen en particular contiene alt_text. Tenés que mencionar al bot en respuesta a un tweet con 
 imágenes (sólo al bot). 
 [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682):
 
-<center>
+
 <img src="https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito">
-<center/>
+
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
