@@ -139,8 +139,9 @@ no lo utilizan, mediante mensaje directo.  Hay otro bot similar, [@AltTextCrew](
 contenido que necesita una descripción. Ambos proyectos también están en inglés.
 
 # AltBotUY en la prensa
-* [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, 19/04/2021
-* [Rodrigo Laguna, creador de una app para ciegos en internet](https://www.canal10.com.uy/rodrigo-laguna-creador-una-app-ciegos-internet-n746089), La Mañana en casa, Canal 10, 03/05/2021
+* [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, Montevideo, Uruguay, 19/04/2021
+* [Rodrigo Laguna, creador de una app para ciegos en internet](https://www.canal10.com.uy/rodrigo-laguna-creador-una-app-ciegos-internet-n746089), La Mañana en casa, Canal 10, Montevideo, Uruguay, 03/05/2021
+* [AltBotUY en Objetivo Principal](https://www.youtube.com/watch?v=8UVZrMx2F-0), Objetivo Principal, Emisora Principal 107.9 FM de San José, Uruguay, 04/05/2021
 
 ## Otros artículos disponibles
  * [¿Cómo ver el alt-text de una imagen?](docs/mostrar-alt-texts.md)
