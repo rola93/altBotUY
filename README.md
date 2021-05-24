@@ -29,12 +29,19 @@ Para autorizarlo, basta dar RT a [este tweet](https://twitter.com/AltBotUY/statu
 **En cualquier momento podés dejar de usarlo deshaciendolo o dejando de seguir al bot**. 
 
 * Podés pedir reportes de uso de alt_text para cuentas arbitrarias. Basta publicar un twit mencionando al bot y 
-hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1385964849264484356).  
+hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/status/1387866272705261569). 
 
-* Podés preguntar si una imagen en particular contiene alt_text. Tenésque mencionar al bot en respuesta a un twit con 
-imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1385965090772504580).
+<img src="https://pbs.twimg.com/media/E0QMRefXMAUySF_?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra el pedido del reporte, y la respuesta.">
 
-* Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
+* Podés preguntar si una imagen en particular contiene alt_text. Tenés que mencionar al bot en respuesta a un tweet con 
+imágenes (sólo al bot). 
+[Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682):
+
+
+<img src="https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito">
+
+
+* Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
 * **[NUEVO]** Una vez al mes se publica el Top-3 de seguidores que más utilizan alt_text.
 
@@ -71,7 +78,7 @@ es amigo o seguidor (o ninguno de los dos).
 
 Chequear el uso de alt_text en imágenes sin un lector de pantallas puede ser complicado. Arrobar al bot en respuesta a 
 una imagen puede servir para usuarios curiosos que quieran chequear si alguna imagen relevante contiene alt_text de 
-manera sencila, además contribuye a la visibilidad del bot, ya futuro se va a agregar el OCR/Captioning de esa imagen 
+manera sencila, además contribuye a la visibilidad del bot, y a futuro se va a agregar el OCR/Captioning de esa imagen 
 como respuesta.  
 
 ## Sobre el proyecto
@@ -83,10 +90,10 @@ observación bien interesante sobre accesibilidad, alt_text y pandemia. Luego de
 
 ## Estado: tweet fijado
 
-El tweet fijado contiene información importante respecto al funcionamiento del bot:
+El [tweet fijado](https://twitter.com/AltBotUY/status/1388263808393678850) contiene información importante respecto al funcionamiento del bot:
 
 <!--html_preserve-->
-<blockquote class="twitter-tweet" data-lang="es" data-dnt="true" data-theme="dark"><p lang="es" dir="ltr">Momentáneamente fuera de servicio: el acceso automatizado al bot está suspendido porque se supone que viola las reglas de automatización 😭😭😭<br>En cuanto quede resuelto, vuelve la programación habitual. <a href="https://t.co/QTd2QBDcYG">pic.twitter.com/QTd2QBDcYG</a></p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1384269443128201218?ref_src=twsrc%5Etfw">19 de abril de 2021</a></blockquote> 
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">Seguime y autorizá los DMs 📩 para poder avisarte cuando olvides utilizar alt_text en tus imágenes.<br>La autorización es muy sencilla: debes dar RT 🔃 al tweet que cito aquí 👉<a href="https://t.co/QJHsyqC2Ns">https://t.co/QJHsyqC2Ns</a><br>Además...</p>&mdash; AltBotUY (@AltBotUY) <a href="https://twitter.com/AltBotUY/status/1388263808393678850?ref_src=twsrc%5Etfw">April 30, 2021</a></blockquote>
 <!--/html_preserve-->
 
 ## ¿Qué esperar en el futuro de AltBotUY?
@@ -136,7 +143,9 @@ no lo utilizan, mediante mensaje directo.  Hay otro bot similar, [@AltTextCrew](
 contenido que necesita una descripción. Ambos proyectos también están en inglés.
 
 # AltBotUY en la prensa
-* [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, 19/06/2021
+* [Ingeniero uruguayo se inspira en Milagros Costabel y diseña solución para ciegos en internet](https://www.elpais.com.uy/vida-actual/ingeniero-uruguayo-inspira-milagros-costable-disena-solucion-ciegos-internet.html), El país, Montevideo, Uruguay, 19/04/2021
+* [Rodrigo Laguna, creador de una app para ciegos en internet](https://www.canal10.com.uy/rodrigo-laguna-creador-una-app-ciegos-internet-n746089), La Mañana en casa, Canal 10, Montevideo, Uruguay, 03/05/2021
+* [AltBotUY en Objetivo Principal](https://www.youtube.com/watch?v=8UVZrMx2F-0), Objetivo Principal, Emisora Principal 107.9 FM de San José, Uruguay, 04/05/2021
 
 ## Otros artículos disponibles
  * [¿Cómo ver el alt-text de una imagen?](docs/mostrar-alt-texts.md)
