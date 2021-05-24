@@ -14,14 +14,14 @@ AUTO_REPLY_NO_DM_NO_ALT_TEXT = emoji.emojize(':point_up: Este tweet sería más 
                                              'alternativos (alt_text) para describir todas sus imágenes... '
                                              'Este artículo podría ayudar: ' 
                                              f'{ALT_TEXT_TUTORIAL_URL}\n Gracias por seguirme! ' 
-                                             f'Mandame DM para recordarte por ahí a futuro :simple_smile:',
+                                             f'Mandame DM para recordarte por ahí a futuro :smile:',
                                              use_aliases=True)
 
 # Reply messages to report use case
 SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en {score:.1f} % de imágenes, {n_images} analizadas'
 SINGLE_USER_NO_IMAGES_FOUND_REPORT = '@{screen_name}: no encontré tweets con imágenes.'
 HEADER_REPORT = emoji.emojize(':mag_right::memo: Aquí está tu reporte :nerd_face::point_down:', use_aliases=True)
-FOOTER_REPORT = f'+info acá https://rola93.github.io/altBotUY/#reportes'
+FOOTER_REPORT = f'+info acá https://rola93.github.io/altBotUY'
 
 # Reply messages to @AltBotUY mentions use case
 SINGLE_USER_NO_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @{} sería más inclusivo con el uso de textos '
@@ -49,4 +49,4 @@ HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top
 
 HEADER_REPORT_PERIODIC_FOLLOWERS = emoji.emojize(':mag_right::memo: Este es el Top-3 de seguidores que usan alt_texts '
                                                  'en el último mes  :nerd_face::point_down:', use_aliases=True)
-FOOTER_REPORT_PERIODIC = f'+info https://rola93.github.io/altBotUY/#reportes'
+FOOTER_REPORT_PERIODIC = f'+info https://rola93.github.io/altBotUY'

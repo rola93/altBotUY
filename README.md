@@ -43,9 +43,9 @@ imágenes (sólo al bot).
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
-* **[NUEVO]** Una vez al mes se publica el Top-3 de seguidores que más utilizan alt_text.
+* **[NUEVO]** Una vez al mes se publica el Top-3 de **seguidores** que publican más imágenes utilizando alt_text.
 
-* **[NUEVO]** Una vez al mes se publica el Top-3 de amigos que más utilizan alt_text.
+* **[NUEVO]** Una vez al mes se publica el Top-3 de **amigos** que publican más imágenes utilizando alt_text.
 
 **MUY IMPORTANTE**: Si en algún momento el bot te sigue, es porque el contenido de tu cuenta es relevante.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 
