@@ -18,6 +18,20 @@ CREATE_PROCESSED_TWEETS_ALT_TEXT_INFO_TABLE = """
                                     );
 """
 
+ALTER_PROCESSED_TWEETS_ALT_TEXT_INFO_TABLE = """
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_1 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_2 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_3 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_4 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_1 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_2 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_3 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_4 TEXT NULL; 
+                                    );
+"""
+
+GET_TABLE_INFO = """SELECT name FROM PRAGMA_TABLE_INFO(?);"""
+
 CREATE_INDEX_FOR_HISTORIC_USER = """
 CREATE INDEX IF NOT EXISTS processed_tweets_alt_text_info_user_id_index ON processed_tweets_alt_text_info(user_id);
 """

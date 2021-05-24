@@ -41,6 +41,15 @@ class DBAccess:
         self.connection.execute(db_queries.CREATE_ALLOWED_TO_DM_TABLE)
         self.connection.execute(db_queries.CREATE_SETTINGS_TABLE)
         self.create_last_mention_if_needed()
+        self.add_alt_text_columns_if_needed()
+
+    def add_alt_text_columns_if_needed(self):
+        columns = [row[0].lower() for row in self.connection.execute(db_queries.GET_TABLE_INFO,
+                                                             ('processed_tweets_alt_text_info',))]
+        if 'user_alt_text_1'not in columns:
+            for single_query in db_queries.ALTER_PROCESSED_TWEETS_ALT_TEXT_INFO_TABLE.split(';'):
+                self.connection.execute(single_query + ';')
+            self.connection.commit()
 
     def create_last_mention_if_needed(self):
         if self. get_last_mention_id() is None:
@@ -256,25 +265,26 @@ class DBAccess:
 if __name__ == '__main__':
 
     db = DBAccess(f'../{DB_FILE}')
+    db.add_alt_text_columns_if_needed()
 
     # print(db.get_top_alt_text_users(start_date='2021-05-01'))
     # print(db.get_top_alt_text_users(start_date='2021-05-10'))
     # print(db.get_top_alt_text_users(start_date='2021-05-15'))
     # print(db.get_top_alt_text_users(start_date='2021-05-17'))
     #
-    print('FOLLOWERS')
-    print(db.get_top_alt_text_users(start_date='2021-05-19', followers=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-26', followers=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-13', followers=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-10', followers=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-17', followers=True))
-
-    print('FRIENDS')
-    print(db.get_top_alt_text_users(start_date='2021-04-19', friends=True))
-    print(db.get_top_alt_text_users(start_date='2021-04-26', friends=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-03', friends=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-10', friends=True))
-    print(db.get_top_alt_text_users(start_date='2021-05-17', friends=True))
+    # print('FOLLOWERS')
+    # print(db.get_top_alt_text_users(start_date='2021-05-19', followers=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-26', followers=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-13', followers=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-10', followers=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-17', followers=True))
+    #
+    # print('FRIENDS')
+    # print(db.get_top_alt_text_users(start_date='2021-04-19', friends=True))
+    # print(db.get_top_alt_text_users(start_date='2021-04-26', friends=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-03', friends=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-10', friends=True))
+    # print(db.get_top_alt_text_users(start_date='2021-05-17', friends=True))
 
     # print(db.count_followers())
     # print(db.count_friends())
