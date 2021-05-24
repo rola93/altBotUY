@@ -1,12 +1,12 @@
 import logging
 import sqlite3
 from datetime import datetime
-from typing import Set, Optional, Tuple
+from typing import Set, Optional, Tuple, List, Dict, Union
 
 import pandas as pd
 
 from data_access_layer import db_queries
-from settings import DB_FILE
+from settings import DB_FILE, INIT_SYSTEM_DATE
 
 
 class DBAccess:
@@ -202,6 +202,40 @@ class DBAccess:
         else:
             return -1, -1
 
+    def get_top_alt_text_users(self, followers: bool = False, friends: bool = False, start_date: str = INIT_SYSTEM_DATE,
+                               top_n: int = 3) -> List[Dict[str, Union[int, float, str]]]:
+
+        # screen_name, user_id, n_images, alt_score, processed_at, friend, follower
+        df = pd.DataFrame(
+            [dict(screen_name=row[0], user_id=row[1], n_images=row[2], alt_score=row[3], friend=row[4], follower=row[5])
+             for row in
+             self.connection.execute(db_queries.GET_HISTORIC_INFO_TABLE_FULL, (start_date,))
+             if ((row[4] and friends) or (row[5] and followers))])
+
+        if len(df) == 0:
+            # if no results were read, return empty list
+            return []
+
+        # compute number of images with alt text
+        df['alt_text_images'] = df['n_images'] * df['alt_score']
+
+        # group records by user_id, summing records
+        df_result = df.groupby(['user_id', 'screen_name'])[['alt_text_images', 'n_images']].sum().sort_values(
+            ['alt_text_images', 'n_images'], ascending=False).head(top_n)
+
+        result = []
+
+        for (user_id, screen_name), row in df_result.iterrows():
+            result.append({
+                'user_id': user_id,
+                'screen_name': screen_name,
+                'n_images': row['n_images'],
+                'alt_text_images': row['alt_text_images'],
+                'portion': row['alt_text_images']/row['n_images']
+            })
+
+        return result
+
     def get_alt_score_from_tweet(self, tweet_id: str) -> Optional[float]:
         query_result = self.connection.execute(db_queries.GET_ALT_SCORE_FOR_PROCESSED_TWEET, (tweet_id,)).fetchone()
 
@@ -223,18 +257,37 @@ if __name__ == '__main__':
 
     db = DBAccess(f'../{DB_FILE}')
 
-    print(db.count_followers())
-    print(db.count_friends())
-    print(db.get_percentage_of_alt_text_usage(743235353235042304))
-    print(db.get_percentage_of_alt_text_usage(74323535))
-    print(db.get_percentage_of_alt_text_usage(226279188))
+    # print(db.get_top_alt_text_users(start_date='2021-05-01'))
+    # print(db.get_top_alt_text_users(start_date='2021-05-10'))
+    # print(db.get_top_alt_text_users(start_date='2021-05-15'))
+    # print(db.get_top_alt_text_users(start_date='2021-05-17'))
+    #
+    print('FOLLOWERS')
+    print(db.get_top_alt_text_users(start_date='2021-05-19', followers=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-26', followers=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-13', followers=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-10', followers=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-17', followers=True))
 
-    print(db.get_alt_score_from_tweet('hola mundo'))
+    print('FRIENDS')
+    print(db.get_top_alt_text_users(start_date='2021-04-19', friends=True))
+    print(db.get_top_alt_text_users(start_date='2021-04-26', friends=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-03', friends=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-10', friends=True))
+    print(db.get_top_alt_text_users(start_date='2021-05-17', friends=True))
 
-    # print(db.save_processed_tweet('hola'))
-    print(db.save_processed_tweet('hola', True))
-    # print(db.save_processed_tweet('hola'))
-
-    print(db.get_last_tweet_with_info_date(743235353235042304))
-    print(db.get_last_tweet_with_info_date(74323535))
-    print(db.get_last_tweet_with_info_date(226279188))
+    # print(db.count_followers())
+    # print(db.count_friends())
+    # print(db.get_percentage_of_alt_text_usage(743235353235042304))
+    # print(db.get_percentage_of_alt_text_usage(74323535))
+    # print(db.get_percentage_of_alt_text_usage(226279188))
+    #
+    # print(db.get_alt_score_from_tweet('hola mundo'))
+    #
+    # # print(db.save_processed_tweet('hola'))
+    # print(db.save_processed_tweet('hola', True))
+    # # print(db.save_processed_tweet('hola'))
+    #
+    # print(db.get_last_tweet_with_info_date(743235353235042304))
+    # print(db.get_last_tweet_with_info_date(74323535))
+    # print(db.get_last_tweet_with_info_date(226279188))

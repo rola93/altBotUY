@@ -36,7 +36,11 @@ imágenes (sólo al bot). [Acá podés ver un ejemplo](https://twitter.com/ro_la
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot.
 
-**MUY IMPORTANTE**: Si en algún momento el bot sigue tu cuenta, es porque el contenido de tu cuenta es relevante.
+* **[NUEVO]** Una vez al mes se publica el Top-3 de seguidores que más utilizan alt_text.
+
+* **[NUEVO]** Una vez al mes se publica el Top-3 de amigos que más utilizan alt_text.
+
+**MUY IMPORTANTE**: Si en algún momento el bot te sigue, es porque el contenido de tu cuenta es relevante.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 
 que si tu cuenta bloquea al bot, otros usuarios no van a poder usar estos servicios de descripción automática de 
 imágenes sobre tus tweets, y se verán perjudicados. 

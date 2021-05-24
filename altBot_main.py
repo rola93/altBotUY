@@ -10,7 +10,10 @@ import tweepy
 
 from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
     SINGLE_USER_NO_IMAGES_FOUND_REPORT, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY,\
-    HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY
+    HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY, SINGLE_USER_REPORT_FIRST_PLACE, \
+    SINGLE_USER_REPORT_SECOND_PLACE, SINGLE_USER_REPORT_THIRD_PLACE, HEADER_REPORT_PERIODIC_FRIENDS, \
+    HEADER_REPORT_PERIODIC_FOLLOWERS, FOOTER_REPORT_PERIODIC
+
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -245,6 +248,23 @@ class AltBot:
                                   f'to {self.get_tweet_url(reply_to, tweet_id)}: {tw_error}')
             logging.debug(
                 f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
+
+    def write_tweet(self, message: str) -> None:
+        """
+        Write a tweet in response to the tweet_id with te message msg;
+        :param message: message to tweet
+        :return: None
+        """
+
+        if self.live:
+            try:
+                self.api.update_status(
+                    status=message
+                )
+            except tweepy.error.TweepError as tw_error:
+                logging.error(f'Can not send tweet {message}: {tw_error}')
+        logging.debug(
+            f'[live={self.live}] - tweet [{message}] ({len(message)} chars)'.replace("\n", ";"))
 
     def direct_message(self, recipient_name: str, recipient_id: int, msg: str) -> int:
         """
@@ -886,8 +906,44 @@ class AltBot:
         logging.info('Updating allowed_to_dm if needed')
         self.update_allowed_to_dm_if_needed(needed)
 
+    def write_report(self, friends, followers):
+
+        logging.info('Starting to write report')
+
+        if friends and followers:
+            error = 'Can not write report for friends and users at same time.'
+            logging.error(error)
+            raise Exception()
+
+        start_date = (datetime.now() - timedelta(days=31)).strftime("%Y-%m-%d %H:%M:%S")
+        to_report = self.db.get_top_alt_text_users(friends=friends, followers=followers, start_date=start_date)
+
+        if len(to_report) == 0:
+            logging.warning(f'Empty report found for friends={friends}, followers={followers}, start_date={start_date}')
+
+        templates = [SINGLE_USER_REPORT_FIRST_PLACE, SINGLE_USER_REPORT_SECOND_PLACE,
+                     SINGLE_USER_REPORT_THIRD_PLACE]
+
+        if friends:
+            to_messages = [HEADER_REPORT_PERIODIC_FRIENDS]
+        else:
+            to_messages = [HEADER_REPORT_PERIODIC_FOLLOWERS]
+
+        for report, template in zip(to_report, templates):
+            to_messages.append(template.format(screen_name=report['screen_name'], n_alts=int(report['alt_text_images']),
+                                               score=report['portion']*100))
+
+        to_messages.append(FOOTER_REPORT_PERIODIC)
+
+        msg = '\n'.join(to_messages)
+        print(msg)
+        print(len(msg))
+        self.write_tweet(msg)
+
+
+
     def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage_in_friends: bool,
-             watch_for_alt_text_usage_in_followers: bool, process_mentions: bool) -> None:
+             watch_for_alt_text_usage_in_followers: bool, process_mentions: bool, top_users: Optional[str]) -> None:
         """
         Main process for the AltBotUY
         :return: None
@@ -908,6 +964,12 @@ class AltBot:
         if msg_to_followers:
             logging.info(f'Sending message to all followers: {msg_to_followers}')
             self.send_message_to_all_followers(msg_to_followers)
+        if top_users == 'friends':
+            logging.info('Computing top-users for friends')
+            self.write_report(friends=True, followers=False)
+        if top_users == 'followers':
+            logging.info('Computing top-users for followers')
+            self.write_report(friends=False, followers=True)
 
     # endregion
 
@@ -933,6 +995,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-p", "--process-mentions", help="Process tweets where the bot is mentioned.",
                         action="store_true")
+    parser.add_argument("-t", "--top-users", help="Compute top-3 users of alt-texts.",
+                        choices=['friends', 'followers'], type=lambda s: str(s).lower(), default=None)
     args = parser.parse_args()
 
     start = time.time()
@@ -945,7 +1009,7 @@ if __name__ == '__main__':
         bot.main(update_users=args.update_users, msg_to_followers=args.message,
                  watch_for_alt_text_usage_in_friends=args.watch_alt_texts_friends,
                  watch_for_alt_text_usage_in_followers=args.watch_alt_texts_followers,
-                 process_mentions=args.process_mentions)
+                 process_mentions=args.process_mentions, top_users=args.top_users)
 
     except Exception as e:
         error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'

@@ -103,6 +103,11 @@ COUNT_ALLOWED_TO_DM = "SELECT Count(*) FROM allowed_to_dm"
 
 GET_HISTORIC_SCORE_TABLE = "SELECT n_images, alt_score FROM processed_tweets_alt_text_info WHERE user_id=?;"
 
+GET_HISTORIC_INFO_TABLE_FULL = """SELECT screen_name, user_id, n_images, alt_score, friend, follower
+                                    FROM processed_tweets_alt_text_info 
+                                    WHERE processed_at>=?
+                                    """
+
 GET_SETTING = "SELECT setting_value FROM bot_settings WHERE setting_key=?"
 
 UPDATE_SETTING = "UPDATE bot_settings SET setting_value=? WHERE setting_key=?"
