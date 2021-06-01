@@ -36,6 +36,14 @@ AUTO_REPLY_NO_IMAGES_FOUND = emoji.emojize(':point_up:️ Ese tweet de @{} no co
                                            'Por ahora no chequeo otros contenidos (GIFs, videos, links externos) '
                                            ':grin:.', use_aliases=True)
 
+HEADER_ALT_TEXT_USER_PROVIDED = '@{screen_name} describió así las imágenes:'
+FIRST_ALT_TEXT_USER_PROVIDED = '1: {alt_text}'
+SECOND_ALT_TEXT_USER_PROVIDED = '2: {alt_text}'
+THIRD_ALT_TEXT_USER_PROVIDED = '3: {alt_text}'
+FOURTH_ALT_TEXT_USER_PROVIDED = '4: {alt_text}'
+ALL_ALT_TEXT_USER_PROVIDED = [FIRST_ALT_TEXT_USER_PROVIDED, SECOND_ALT_TEXT_USER_PROVIDED, THIRD_ALT_TEXT_USER_PROVIDED,
+                          FOURTH_ALT_TEXT_USER_PROVIDED]
+
 # Reply messages to periodic report use case
 SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)

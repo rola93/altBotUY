@@ -58,7 +58,14 @@ class DBAccess:
             self.connection.commit()
 
     def save_processed_tweet_with_with_alt_text_info(self, screen_name: str, user_id: int, tweet_id: str, n_images: int,
-                                                     alt_score: float) -> None:
+                                                     alt_score: float, user_alt_text_1: Optional[str] = None,
+                                                     user_alt_text_2: Optional[str] = None,
+                                                     user_alt_text_3: Optional[str] = None,
+                                                     user_alt_text_4: Optional[str] = None,
+                                                     bot_alt_text_1: Optional[str] = None,
+                                                     bot_alt_text_2: Optional[str] = None,
+                                                     bot_alt_text_3: Optional[str] = None,
+                                                     bot_alt_text_4: Optional[str] = None) -> None:
         """
         Stores the data related to processed tweets with images, needed to implement reports on alt_text usage
         :param screen_name: screen_name of user who wrote the tweet
@@ -66,6 +73,14 @@ class DBAccess:
         :param tweet_id: id of the tweet
         :param n_images: number of images attached to the tweet
         :param alt_score: portion of attached images containing alt_text
+        :param user_alt_text_1: alt text provided by the user in the 1st image of the tweet
+        :param user_alt_text_2: alt text provided by the user in the 2nd image of the tweet
+        :param user_alt_text_3: alt text provided by the user in the 3rd image of the tweet
+        :param user_alt_text_4: alt text provided by the user in the 4th image of the tweet
+        :param bot_alt_text_1: alt text figured out by the bot for the 1st image of the tweet
+        :param bot_alt_text_2: alt text figured out by the bot for the 2nd image of the tweet
+        :param bot_alt_text_3: alt text figured out by the bot for the 3rd image of the tweet
+        :param bot_alt_text_4: alt text figured out by the bot for the 4th image of the tweet
         :return: None
         """
         processed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -75,7 +90,10 @@ class DBAccess:
 
         self.connection.execute(db_queries.SAVE_TWEET_ALT_TEXT_INFO,
                                 (tweet_id, screen_name, user_id, n_images, alt_score,
-                                 processed_at, friend, follower))
+                                 processed_at, friend, follower,
+                                 user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4,
+                                 bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4
+                                 ))
         self.connection.commit()
 
     def save_processed_tweet(self, tweet_id: str, do_not_fail: bool = False) -> None:
@@ -245,10 +263,40 @@ class DBAccess:
 
         return result
 
+    def update_user_alt_text_info(self, tweet_id: str, user_alt_text_1: str = None, user_alt_text_2: str = None,
+                                  user_alt_text_3: str = None, user_alt_text_4: str = None):
+
+        self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
+                                (user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4, tweet_id))
+        self.connection.commit()
+
+    def update_bot_alt_text_info(self, tweet_id: str, bot_alt_text_1: str = None, bot_alt_text_2: str = None,
+                                  bot_alt_text_3: str = None, bot_alt_text_4: str = None):
+
+        self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
+                                (bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4, tweet_id))
+        self.connection.commit()
+
     def get_alt_score_from_tweet(self, tweet_id: str) -> Optional[float]:
         query_result = self.connection.execute(db_queries.GET_ALT_SCORE_FOR_PROCESSED_TWEET, (tweet_id,)).fetchone()
 
         result = None if query_result is None else query_result[0]
+
+        return result
+
+    def get_alt_text_info_from_tweet(self, tweet_id: str) -> Optional[Dict[str, Union[List[Optional[str]], int, float]]]:
+
+        # n_images, alt_score,
+        # user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4,
+        # bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4
+        query_result = self.connection.execute(db_queries.GET_ALT_TEXT_INFO_FROM_TWEET, (tweet_id,)).fetchone()
+
+        if query_result is not None:
+            result = dict(n_images=int(query_result[0]), alt_score=float(query_result[1]),
+                          user_alt_text=[txt for txt in query_result[2:6]],
+                          bot_alt_text=[txt for txt in query_result[6:10]])
+        else:
+            result = None
 
         return result
 
@@ -266,6 +314,8 @@ if __name__ == '__main__':
 
     db = DBAccess(f'../{DB_FILE}')
     db.add_alt_text_columns_if_needed()
+    print(db.get_alt_text_info_from_tweet('1383088783361458176'))
+
 
     # print(db.get_top_alt_text_users(start_date='2021-05-01'))
     # print(db.get_top_alt_text_users(start_date='2021-05-10'))
