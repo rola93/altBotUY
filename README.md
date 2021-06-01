@@ -37,15 +37,18 @@ hasta tres cuentas más, [aca tenés un ejemplo](https://twitter.com/ro_laguna_/
 imágenes (sólo al bot). 
 [Acá podés ver un ejemplo](https://twitter.com/ro_laguna_/status/1388105417574727682):
 
-
 <img src="https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito">
 
+*En la nueva versión, se incluye el alt_text provisto por el usuario, resta actualizar con ejemplos*.
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
 * **[NUEVO]** Una vez al mes se publica el Top-3 de **seguidores** que publican más imágenes utilizando alt_text.
 
 * **[NUEVO]** Una vez al mes se publica el Top-3 de **amigos** que publican más imágenes utilizando alt_text.
+
+* **[NUEVO]** El bot contesta con el alt_text dado por el usuario cuando lo llaman en respuesta a un tweet con imágenes. 
+ Próximamente ejemplos.
 
 **MUY IMPORTANTE**: Si en algún momento el bot te sigue, es porque el contenido de tu cuenta es relevante.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 

@@ -89,6 +89,13 @@ special tweet.
     * Tweets that mention the bot in reply to other tweet that contain the image. Then this tweet is reply with an 
     appropiated message telling if the image contains alt_texts or not.
     
+## V3.0
+[master] This version implements some new use cases while modify an existing one. Also fix some small bugs
+ * Produce reports for friends/followers who use the most alt_text, asa top-3 leader board for each. 
+ The goal is to run it periodically, once a month
+ * Reply to users who mentioned the bot in reply to an image, with the alt_text provided by the user for this image.
+ * Fix regex in replies when just the user is mentioned
+    
 # ROAD MAP (prioritized):
  * **BUGFIX**: Can not send DMs to all followers since the API start to throw error; maybe need to sleep or 
  use different messages
@@ -139,6 +146,7 @@ Information on how to run can be checked with `help` command, as follows:
 ```.env
 $ python altBot_main.py --help 
 usage: altBot_main.py [-h] [-u] [-wfr] [-wfw] [-m MESSAGE] [-l] [-p]
+                      [-t {friends,followers}]
 
 This script runs AltBotUY.
 
@@ -156,6 +164,9 @@ optional arguments:
                         logs it. Must use it for production.
   -p, --process-mentions
                         Process tweets where the bot is mentioned.
+  -t {friends,followers}, --top-users {friends,followers}
+                        Compute top-3 users of alt-texts.
+
 ```
 
 # Related work:
