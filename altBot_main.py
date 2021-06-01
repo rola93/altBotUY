@@ -635,7 +635,6 @@ class AltBot:
         if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
             logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
             # we already processed this tweet; take results from DB
-            alt_text_score = self.db.get_alt_score_from_tweet(str(tweet_to_process_tweet_id))
             alt_text_info = self.db.get_alt_text_info_from_tweet(str(tweet_to_process_tweet_id))
 
             if alt_text_info is None:
@@ -644,9 +643,12 @@ class AltBot:
                 self.reply(tweet_to_reply_screen_name,
                            AUTO_REPLY_NO_IMAGES_FOUND.format(tweet_to_process_screen_name), tweet_to_reply_id)
             else:
+
+                alt_text_score = alt_text_info['alt_score']  # type: float
+
                 # The tweet contain images, if there were alt_text BUT we don't have them in our DB,
                 # then need to recover them
-                if alt_text_info['alt_score'] > 0 and all([txt is None for txt in alt_text_info['user_alt_text']]):
+                if alt_text_score > 0 and all([txt is None for txt in alt_text_info['user_alt_text']]):
                     # the tweet contain images with alt_text but we didn't have it, so lets download it and check
                     alt_text_info['user_alt_text'] = self.get_alt_text(str(tweet_to_process_tweet_id))
                     update_params = {f'user_alt_text_{i}': txt for i, txt in
