@@ -286,9 +286,6 @@ class DBAccess:
 
     def get_alt_text_info_from_tweet(self, tweet_id: str) -> Optional[Dict[str, Union[List[Optional[str]], int, float]]]:
 
-        # n_images, alt_score,
-        # user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4,
-        # bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4
         query_result = self.connection.execute(db_queries.GET_ALT_TEXT_INFO_FROM_TWEET, (tweet_id,)).fetchone()
 
         if query_result is not None:

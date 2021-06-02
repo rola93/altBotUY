@@ -963,7 +963,7 @@ class AltBot:
         if friends and followers:
             error = 'Can not write report for friends and users at same time.'
             logging.error(error)
-            raise Exception()
+            raise Exception(error)
 
         start_date = (datetime.now() - timedelta(days=31)).strftime("%Y-%m-%d %H:%M:%S")
         to_report = self.db.get_top_alt_text_users(friends=friends, followers=followers, start_date=start_date)
@@ -986,8 +986,7 @@ class AltBot:
         to_messages.append(FOOTER_REPORT_PERIODIC)
 
         msg = '\n'.join(to_messages)
-        print(msg)
-        print(len(msg))
+
         self.write_tweet(msg)
 
     def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage_in_friends: bool,

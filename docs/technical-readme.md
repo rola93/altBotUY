@@ -90,11 +90,11 @@ special tweet.
     appropiated message telling if the image contains alt_texts or not.
     
 ## V3.0
-[master] This version implements some new use cases while modify an existing one. Also fix some small bugs
- * Produce reports for friends/followers who use the most alt_text, asa top-3 leader board for each. 
- The goal is to run it periodically, once a month
+[master] This version implements some new use cases while modify an existing one. This also fixes some small bugs.
+ * Produces reports for friends/followers who use the most alt_text, as a top-3 leader board for each. 
+ The goal is to run it periodically, once a month.
  * Reply to users who mentioned the bot in reply to an image, with the alt_text provided by the user for this image.
- * Fix regex in replies when just the user is mentioned
+ * Fix regex in replies when just the user is mentioned.
     
 # ROAD MAP (prioritized):
  * **BUGFIX**: Can not send DMs to all followers since the API start to throw error; maybe need to sleep or 
