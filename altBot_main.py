@@ -355,12 +355,9 @@ class AltBot:
 
         result.append(' '.join(words[j:]))
 
-        for r in result:
-            print(f'{len(r)}/{max_len}: {r}')
-            print('='*10)
-
         assert sum([len(m.replace(' ', '')) for m in result]) == len(text.replace(' ', ''))
         assert all([len(m) <= max_len for m in result])
+
         return result
 
     def update_followers_if_needed(self, needed: bool) -> None:
