@@ -18,6 +18,20 @@ CREATE_PROCESSED_TWEETS_ALT_TEXT_INFO_TABLE = """
                                     );
 """
 
+ALTER_PROCESSED_TWEETS_ALT_TEXT_INFO_TABLE = """
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_1 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_2 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_3 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN user_alt_text_4 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_1 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_2 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_3 TEXT NULL;
+ ALTER TABLE processed_tweets_alt_text_info  ADD COLUMN bot_alt_text_4 TEXT NULL; 
+                                    );
+"""
+
+GET_TABLE_INFO = """SELECT name FROM PRAGMA_TABLE_INFO(?);"""
+
 CREATE_INDEX_FOR_HISTORIC_USER = """
 CREATE INDEX IF NOT EXISTS processed_tweets_alt_text_info_user_id_index ON processed_tweets_alt_text_info(user_id);
 """
@@ -61,13 +75,20 @@ INSERT OR IGNORE INTO processed_tweets (tweet_id)
 
 SAVE_TWEET_ALT_TEXT_INFO = """
 INSERT INTO processed_tweets_alt_text_info (tweet_id, screen_name, user_id, n_images, 
-                                            alt_score, processed_at, friend, follower) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                                            alt_score, processed_at, friend, follower,
+                                            user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4,
+                                            bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 """
 
 GET_PROCESSED_TWEETS = "SELECT tweet_id from processed_tweets"
 
 GET_ALT_SCORE_FOR_PROCESSED_TWEET = "SELECT alt_score from processed_tweets_alt_text_info WHERE tweet_id=? "
+
+GET_ALT_TEXT_INFO_FROM_TWEET = """SELECT n_images, alt_score,
+                                         user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4,
+                                         bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4 
+                                  FROM processed_tweets_alt_text_info WHERE tweet_id=? """
 
 CHECK_TWEET_PROCESSED = "SELECT EXISTS(SELECT 1 FROM processed_tweets WHERE tweet_id=?);"
 
@@ -103,9 +124,22 @@ COUNT_ALLOWED_TO_DM = "SELECT Count(*) FROM allowed_to_dm"
 
 GET_HISTORIC_SCORE_TABLE = "SELECT n_images, alt_score FROM processed_tweets_alt_text_info WHERE user_id=?;"
 
+GET_HISTORIC_INFO_TABLE_FULL = """SELECT screen_name, user_id, n_images, alt_score, friend, follower
+                                    FROM processed_tweets_alt_text_info 
+                                    WHERE processed_at>=?
+                                    """
+
 GET_SETTING = "SELECT setting_value FROM bot_settings WHERE setting_key=?"
 
 UPDATE_SETTING = "UPDATE bot_settings SET setting_value=? WHERE setting_key=?"
+
+UPDATE_USER_ALT_TEXT_INFO = """UPDATE processed_tweets_alt_text_info 
+                               SET user_alt_text_1=?, user_alt_text_2=?, user_alt_text_3=?, user_alt_text_4=?
+                               WHERE tweet_id=?"""
+
+UPDATE_BOT_ALT_TEXT_INFO = """UPDATE processed_tweets_alt_text_info 
+                               SET bot_alt_text_1=?, bot_alt_text_2=?, bot_alt_text_3=?, bot_alt_text_4=?
+                               WHERE tweet_id=?"""
 
 ADD_SETTING = "INSERT INTO bot_settings (setting_key, setting_value) VALUES (?,?);"
 

@@ -10,7 +10,10 @@ import tweepy
 
 from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
     SINGLE_USER_NO_IMAGES_FOUND_REPORT, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY,\
-    HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY
+    HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY, SINGLE_USER_REPORT_FIRST_PLACE, \
+    SINGLE_USER_REPORT_SECOND_PLACE, SINGLE_USER_REPORT_THIRD_PLACE, HEADER_REPORT_PERIODIC_FRIENDS, \
+    HEADER_REPORT_PERIODIC_FOLLOWERS, FOOTER_REPORT_PERIODIC, ALL_ALT_TEXT_USER_PROVIDED, HEADER_ALT_TEXT_USER_PROVIDED
+
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -246,6 +249,23 @@ class AltBot:
             logging.debug(
                 f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
 
+    def write_tweet(self, message: str) -> None:
+        """
+        Write a tweet in response to the tweet_id with te message msg;
+        :param message: message to tweet
+        :return: None
+        """
+
+        if self.live:
+            try:
+                self.api.update_status(
+                    status=message
+                )
+            except tweepy.error.TweepError as tw_error:
+                logging.error(f'Can not send tweet {message}: {tw_error}')
+        logging.debug(
+            f'[live={self.live}] - tweet [{message}] ({len(message)} chars)'.replace("\n", ";"))
+
     def direct_message(self, recipient_name: str, recipient_id: int, msg: str) -> int:
         """
         send a direct message with the msg tex to the message_to user
@@ -335,12 +355,9 @@ class AltBot:
 
         result.append(' '.join(words[j:]))
 
-        for r in result:
-            print(f'{len(r)}/{max_len}: {r}')
-            print('='*10)
-
         assert sum([len(m.replace(' ', '')) for m in result]) == len(text.replace(' ', ''))
         assert all([len(m) <= max_len for m in result])
+
         return result
 
     def update_followers_if_needed(self, needed: bool) -> None:
@@ -527,9 +544,12 @@ class AltBot:
                                       f'{self.get_tweet_url(screen_name, tweet_id)} | '
                                       f'IGNORED: follower: {follower} allowed_to_be_DMed: {allowed_to_be_dmed}')
 
+                # Compute user_alt_text_X as param to save each alt_text
+                user_alt_texts_params = {f'user_alt_text_{idx}': text for idx, text in enumerate(alt_texts, start=1)}
+
                 self.db.save_processed_tweet(tweet_id)
                 self.db.save_processed_tweet_with_with_alt_text_info(screen_name, user_id, tweet_id, len(alt_texts),
-                                                                     alt_text_score)
+                                                                     alt_text_score, **user_alt_texts_params)
 
             except Exception as e:
                 logging.error(f'Exception: {e} while processing tweet '
@@ -611,21 +631,49 @@ class AltBot:
 
         if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
             logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
-            # we already procesed this tweet; take results from DB
-            alt_text_score = self.db.get_alt_score_from_tweet(str(tweet_to_process_tweet_id))
-            if alt_text_score is None:
+            # we already processed this tweet; take results from DB
+            alt_text_info = self.db.get_alt_text_info_from_tweet(str(tweet_to_process_tweet_id))
+
+            if alt_text_info is None:
                 # the tweet does not contain an image
                 logging.debug(f'Tweet being reply was already processed and does not contain images')
                 self.reply(tweet_to_reply_screen_name,
                            AUTO_REPLY_NO_IMAGES_FOUND.format(tweet_to_process_screen_name), tweet_to_reply_id)
-            elif alt_text_score < 1:
-                logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
-                self.reply(tweet_to_reply_screen_name,
-                           SINGLE_USER_NO_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
             else:
-                logging.debug(f'Tweet being reply was already processed and ALL images contain alt_text')
-                self.reply(tweet_to_reply_screen_name,
-                           SINGLE_USER_WITH_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
+
+                alt_text_score = alt_text_info['alt_score']  # type: float
+
+                # The tweet contain images, if there were alt_text BUT we don't have them in our DB,
+                # then need to recover them
+                if alt_text_score > 0 and all([txt is None for txt in alt_text_info['user_alt_text']]):
+                    # the tweet contain images with alt_text but we didn't have it, so lets download it and check
+                    alt_text_info['user_alt_text'] = self.get_alt_text(str(tweet_to_process_tweet_id))
+                    update_params = {f'user_alt_text_{i}': txt for i, txt in
+                                     enumerate(alt_text_info['user_alt_text'], start=1)}
+                    self.db.update_user_alt_text_info(str(tweet_to_process_tweet_id), **update_params)
+
+                if alt_text_score > 0:
+                    # there are some alt_texts, let's write the thread as a list of messages
+                    alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+                    for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_text_info['user_alt_text']):
+                        if text is None:
+                            continue
+                        # alt text may contain up to 1000 chars, so we may need to split each into several tweets
+                        alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+                else:
+                    # no alt_texts were provided
+                    alt_text_messages = []
+
+                if alt_text_score < 1:
+                    logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
+                    alt_text_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+                else:
+                    logging.debug(f'Tweet being reply was already processed and ALL images contain alt_text')
+                    alt_text_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
         else:
             # tweet is not in our DB; we need to get it from the API and process accordingly
             alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
@@ -639,19 +687,29 @@ class AltBot:
             else:
 
                 alt_text_score = self.compute_alt_text_score(alt_texts)
+                alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+                for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_texts):
+                    if text is None:
+                        continue
+                    # alt text may contain up to 1000 chars, so we may need to split each into several tweets
+                    alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
 
                 if alt_text_score == 1:
                     # all of the images contains alt_text, let's like it
                     logging.debug(f'All images in tweet contain alt texts: {tweet_to_process_url}')
                     self.fav_tweet(str(tweet_to_process_tweet_id))
-                    self.reply(tweet_to_reply_screen_name,
-                               SINGLE_USER_WITH_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
+                    alt_text_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
                 else:
                     # some images with out alt_text; reply the tweet with proper message
                     logging.debug(f'Some images ({alt_text_score * 100} %) in tweet does not contain '
                                   f'alt texts: {tweet_to_process_url}')
-                    self.reply(tweet_to_reply_screen_name,
-                               SINGLE_USER_NO_ALT_TEXT_QUERY.format(tweet_to_process_screen_name), tweet_to_reply_id)
+
+                    alt_text_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+
                     # also reply to the author if needed
                     if self.db.is_allowed_to_dm(tweet_to_process_user_id) and self.db.is_follower(
                             tweet_to_process_user_id):
@@ -659,11 +717,15 @@ class AltBot:
                         self.direct_message(tweet_to_process_screen_name, tweet_to_process_user_id,
                                             AUTO_REPLY_NO_DM_NO_ALT_TEXT.format(tweet_to_process_url))
 
+                # Compute user_alt_text_X as param to save each alt_text
+                user_alt_texts_params = {f'user_alt_text_{idx}': text for idx, text in enumerate(alt_texts, start=1)}
+
                 # save the processed tweet as processed with images data
                 self.db.save_processed_tweet_with_with_alt_text_info(tweet_to_process_screen_name,
                                                                      tweet_to_process_user_id,
                                                                      str(tweet_to_process_tweet_id),
-                                                                     len(alt_texts), alt_text_score)
+                                                                     len(alt_texts), alt_text_score,
+                                                                     **user_alt_texts_params)
 
         # save the processed tweet as processed if needed; notice that the tweet may be already processed
         # happens when user A tweets an image,
@@ -695,7 +757,7 @@ class AltBot:
         :return: True iff tweet only contains @bot_screen_name mentioned
         """
         # remove named users in text (all users being reply and the bot)
-        result = re.sub(r'^(@[a-z\d_]{1,15} )+' + f'@{bot_screen_name}', '', text, flags=re.IGNORECASE)
+        result = re.sub(r'^(@[a-z\d_]{1,15} )*' + f'@{bot_screen_name}', '', text, flags=re.IGNORECASE)
         # remove empty chars and some punctuation before returning
         result = re.sub(r'[\s.:,;-]*', '', result)
         return len(result) == 0
@@ -872,29 +934,71 @@ class AltBot:
 
         logging.info(f'{msg_sent}/{len(followers)} messages sent')
 
-    def update_users_if_needed(self, needed: bool) -> None:
+    def update_users_if_needed(self, needed: bool, friends: bool, followers: bool) -> None:
         """
         Update boh, friends and followers
-        :param needed: True to Update the users (followers and friends) local list,
+        :param needed: True to force updating the users (followers and friends) local list,
         no matter if is the same as in real Tweeter, otherwise only update when local and twitter number differ
+        :param friends: True to update the friends
+        :param followers: True to update the followers
         :return: None
         """
-        logging.info('Updating followers if needed')
-        self.update_followers_if_needed(needed)
-        logging.info('Updating friends if needed')
-        self.update_friends_if_needed(needed)
-        logging.info('Updating allowed_to_dm if needed')
-        self.update_allowed_to_dm_if_needed(needed)
+        if followers:
+            logging.info('Updating followers if needed')
+            self.update_followers_if_needed(needed)
+            logging.info('Updating allowed_to_dm if needed')
+            self.update_allowed_to_dm_if_needed(needed)
+
+        if friends:
+            logging.info('Updating friends if needed')
+            self.update_friends_if_needed(needed)
+
+    def write_report(self, friends, followers):
+
+        logging.info('Starting to write report')
+
+        if friends and followers:
+            error = 'Can not write report for friends and users at same time.'
+            logging.error(error)
+            raise Exception(error)
+
+        start_date = (datetime.now() - timedelta(days=31)).strftime("%Y-%m-%d %H:%M:%S")
+        to_report = self.db.get_top_alt_text_users(friends=friends, followers=followers, start_date=start_date)
+
+        if len(to_report) == 0:
+            logging.warning(f'Empty report found for friends={friends}, followers={followers}, start_date={start_date}')
+
+        templates = [SINGLE_USER_REPORT_FIRST_PLACE, SINGLE_USER_REPORT_SECOND_PLACE,
+                     SINGLE_USER_REPORT_THIRD_PLACE]
+
+        if friends:
+            to_messages = [HEADER_REPORT_PERIODIC_FRIENDS]
+        else:
+            to_messages = [HEADER_REPORT_PERIODIC_FOLLOWERS]
+
+        for report, template in zip(to_report, templates):
+            to_messages.append(template.format(screen_name=report['screen_name'], n_alts=int(report['alt_text_images']),
+                                               score=report['portion']*100))
+
+        to_messages.append(FOOTER_REPORT_PERIODIC)
+
+        msg = '\n'.join(to_messages)
+
+        self.write_tweet(msg)
 
     def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage_in_friends: bool,
-             watch_for_alt_text_usage_in_followers: bool, process_mentions: bool) -> None:
+             watch_for_alt_text_usage_in_followers: bool, process_mentions: bool, top_users: Optional[str]) -> None:
         """
         Main process for the AltBotUY
         :return: None
         """
 
-        logging.info('Updating users')
-        self.update_users_if_needed(update_users)
+        # use cases that need updated friends
+        frd = any([update_users, watch_for_alt_text_usage_in_friends])
+        # use cases that need updated followers
+        flw = any([update_users, msg_to_followers is not None, watch_for_alt_text_usage_in_followers])
+
+        self.update_users_if_needed(update_users, friends=frd, followers=flw)
 
         if watch_for_alt_text_usage_in_followers:
             logging.info('Watching for alt_text usage in followers')
@@ -908,6 +1012,12 @@ class AltBot:
         if msg_to_followers:
             logging.info(f'Sending message to all followers: {msg_to_followers}')
             self.send_message_to_all_followers(msg_to_followers)
+        if top_users == 'friends':
+            logging.info('Computing top-users for friends')
+            self.write_report(friends=True, followers=False)
+        if top_users == 'followers':
+            logging.info('Computing top-users for followers')
+            self.write_report(friends=False, followers=True)
 
     # endregion
 
@@ -933,6 +1043,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-p", "--process-mentions", help="Process tweets where the bot is mentioned.",
                         action="store_true")
+    parser.add_argument("-t", "--top-users", help="Compute top-3 users of alt-texts.",
+                        choices=['friends', 'followers'], type=lambda s: str(s).lower(), default=None)
     args = parser.parse_args()
 
     start = time.time()
@@ -945,7 +1057,7 @@ if __name__ == '__main__':
         bot.main(update_users=args.update_users, msg_to_followers=args.message,
                  watch_for_alt_text_usage_in_friends=args.watch_alt_texts_friends,
                  watch_for_alt_text_usage_in_followers=args.watch_alt_texts_followers,
-                 process_mentions=args.process_mentions)
+                 process_mentions=args.process_mentions, top_users=args.top_users)
 
     except Exception as e:
         error_msg = f'Unknown error on bot execution with args = {args}: {e}.\n\n'
