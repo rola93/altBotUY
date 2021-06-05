@@ -39,16 +39,30 @@ imágenes (sólo al bot).
 
 <img src="https://pbs.twimg.com/media/E0QM9hcX0AI9NUx?format=jpg&name=large" width="300" alt="Captura de pantalla del tweet anterior que muestra un Tweet de Montevideo tránsito, un usuario contesta arrobando al bot y luego el bot contesta indicando que no hay alt_texts en las imágenes de ese tweet de Montevideo tránsito">
 
-*En la nueva versión, se incluye el alt_text provisto por el usuario, resta actualizar con ejemplos*.
+
 
 * Todos los twits que procesa el bot y contienen alt_text se ganan un fav/like ❤️ del bot: no se chequea el contenido ni la calidad.
 
-* **[NUEVO]** Una vez al mes se publica el Top-3 de **seguidores** que publican más imágenes utilizando alt_text.
+* **[NUEVO]** Una vez al mes se publica el Top-3 de **seguidores** que publican más imágenes utilizando alt_text. El reporte en la imagen de ejemplo dice:
 
-* **[NUEVO]** Una vez al mes se publica el Top-3 de **amigos** que publican más imágenes utilizando alt_text.
+> 🔎📝 Este es el Top-3 de seguidores que usan alt_texts en el último mes  🤓👇
+> 1️⃣ @SarAusten: 75 imágenes (88.2 %)
+> 2️⃣ @CICR_es: 25 imágenes (100.0 %)
+> 3️⃣ @KimiSurrealist: 23 imágenes (95.8 %)
+> +info https://rola93.github.io/altBotUY
 
-* **[NUEVO]** El bot contesta con el alt_text dado por el usuario cuando lo llaman en respuesta a un tweet con imágenes. 
- Próximamente ejemplos.
+<img src="https://github.com/rola93/altBotUY/blob/master/docs/media/followers-report.png?raw=true" width="300" alt="Captura de pantalla de un tweet con el reporte de seguidores descrito.">
+
+* **[NUEVO]** Una vez al mes se publica el Top-3 de **amigos** que publican más imágenes utilizando alt_text. El reporte en la imagen de ejemplo dice:
+> 🔎📝 Este es el Top-3 de amigos que usan alt_texts en el último mes 🤓👇
+> 1️⃣ @impouruguay: 67 imágenes (77.0 %)
+> 2️⃣ @MeteorologiaUy: 38 imágenes (97.4 %)
+> 3️⃣ @SarAusten: 17 imágenes (77.3 %)
+> +info https://rola93.github.io/altBotUY
+
+<img src="https://github.com/rola93/altBotUY/blob/master/docs/media/friends-report.png?raw=true" width="300" alt="Captura de pantalla de un tweetcon el reporte de amigos descrito.">
+
+* **[NUEVO]** El bot contesta con el alt_text dado por el usuario cuando lo llaman en respuesta a un tweet con imágenes, en forma de hilo, como en [este caso](https://twitter.com/ro_laguna_/status/1400979352871911425).
 
 **MUY IMPORTANTE**: Si en algún momento el bot te sigue, es porque el contenido de tu cuenta es relevante.
 Por favor, **no lo bloquees**: a futuro se añadirán servicios de descripción automática de imágenes, 
