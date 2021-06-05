@@ -29,3 +29,5 @@ MAINTAEINER_ID = 537304416
 # ID of the tweet that users must RT to allow for DMs:
 # https://twitter.com/AltBotUY/status/1385971762819706888
 ACCEPT_DM_TWEET_ID = 1385971762819706888
+
+INIT_SYSTEM_DATE = '2021-01-01'
