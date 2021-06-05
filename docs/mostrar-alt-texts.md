@@ -8,6 +8,8 @@ es sencillo: al llegar a la imagen, el lector lo va leer el alt_text.
 En este breve artículo se presenta una forma alternativa de hacerlo, enfocado en Twitter, aunque sirve para cualquier página.
 Quizá pueda parecer engorrosa pero es bastante sencilla.
 
+**NUEVO Ahora podés arrobar a [@AltBotUY](https://twitter.com/AltBotUY) en respuesta a un tweet con imágenes, y en algunos minutos te contestará con la descripción si la tiene.** Por ejemplo, mirá [este caso](https://twitter.com/ro_laguna_/status/1400979122801741824).
+
 Algunos comentarios más antes de empezar: la funcionalidad que se verá no es 
 exclusivamente para esto, sino que es una herramienta que utilizan desarrolladores 
 web cuando crean un sitio o aplicación web. Por otro lado, esto aplica para 
