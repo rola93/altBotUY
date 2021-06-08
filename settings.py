@@ -15,6 +15,8 @@ MAX_DAYS_TO_REFRESH_TWEETS = 1
 ALT_BOT_NAME = 'AltBotUY'
 
 LAST_N_TWEETS = 25
+# LAST_N_TWEETS_MAX is only used when a report is required for a user not in our DB
+LAST_N_TWEETS_MAX = 200
 LAST_N_MENTIONS = 100
 
 LOG_LEVEL = logging.DEBUG

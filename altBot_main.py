@@ -24,7 +24,7 @@ except Exception as e:
 
 from settings import ACCEPT_DM_TWEET_ID, LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, \
     MAX_RECONNECTION_ATTEMPTS, MAX_MENTIONS_TO_PROCESS, MAINTEINER_NAME, MAINTAEINER_ID, LAST_N_MENTIONS,\
-    MAX_DAYS_TO_REFRESH_TWEETS
+    MAX_DAYS_TO_REFRESH_TWEETS, LAST_N_TWEETS_MAX
 
 
 class AltBot:
@@ -794,7 +794,7 @@ class AltBot:
                 allowed = self.db.is_allowed_to_dm(user['id'])
                 logging.debug(f"Processing @{user['screen_name']} account since most recent tweet is from {last_date}")
                 # notice that this line will send the user a DM  if needed
-                self.process_account(user['screen_name'], user['id'], follower, allowed, LAST_N_TWEETS)
+                self.process_account(user['screen_name'], user['id'], follower, allowed, LAST_N_TWEETS_MAX)
 
             score, n_images = self.db.get_percentage_of_alt_text_usage(user['id'])
 
