@@ -45,11 +45,11 @@ ALL_ALT_TEXT_USER_PROVIDED = [FIRST_ALT_TEXT_USER_PROVIDED, SECOND_ALT_TEXT_USER
                           FOURTH_ALT_TEXT_USER_PROVIDED]
 
 # Reply messages to periodic report use case
-SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @ {screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
-SINGLE_USER_REPORT_SECOND_PLACE = emoji.emojize(':two: @ {screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_SECOND_PLACE = emoji.emojize(':two: @{screen_name}: {n_alts:d} '
                                                 'imágenes ({score:.1f} %)', use_aliases=True)
-SINGLE_USER_REPORT_THIRD_PLACE = emoji.emojize(':three: @ {screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_THIRD_PLACE = emoji.emojize(':three: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
 
 HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top-3 de amigos que usan alt_texts '
