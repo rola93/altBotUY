@@ -150,10 +150,14 @@ Contiene instruccciones y requerimientos para ejecutar el bot, así como la desc
 
 # Proyectos relacionados:
 
-[@ImageAltText](https://twitter.com/ImageAltText) y [@get_altText](https://twitter.com/get_altText) son otros bots de 
-Twitter que implementan image captioning: vos los arrobas contestando un tweet que tiene una imagen y el bot intenta
-describirla. Ambos están en inglés, 
+[@get_altText](https://twitter.com/get_altText) es un bot que lee los alt_text provistos por los usuarios, en forma de tweets: lo citas en respuesta a una imagen, y si tiene alt_text, responde con él. Esto hace que sea agnóstico respecto al idioma: siempre contesta con el texto dadpo por el usuario.
+
+[@ImageAltText](https://twitter.com/ImageAltText) es otro bots de 
+Twitter que implementa image captioning: vos lo arrobas contestando un tweet que tiene una imagen y el bot intenta
+describirla. Está en inglés, 
 [acá pueden ver un ejemplo](https://twitter.com/ImageAltText/status/1383873803860602891).
+
+[@captionerbot](https://twitter.com/captionerbot) es otro bot para describir imágenes, en inglés. Basta con mencionarlo en respuesta a alguna imagen con la palabra _caption_. Además se le puede sugerir palabras para que use como entrada para generar las descripciones. Está en inglés.
 
 [@AltTxtReminder](https://twitter.com/AltTxtReminder) es otro bot que sugiere el uso de alt_text a sus seguidores cuando 
 no lo utilizan, mediante mensaje directo.  Hay otro bot similar, [@AltTextCrew](https://twitter.com/AltTextCrew) que retwitea 
