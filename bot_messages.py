@@ -24,11 +24,11 @@ HEADER_REPORT = emoji.emojize(':mag_right::memo: Aquí está tu reporte :nerd_fa
 FOOTER_REPORT = f'+info acá https://rola93.github.io/altBotUY'
 
 # Reply messages to @AltBotUY mentions use case
-SINGLE_USER_NO_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @{} sería más inclusivo con el uso de textos '
+SINGLE_USER_NO_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @ {} sería más inclusivo con el uso de textos '
                                               'alternativos (alt_text) para describir  todas sus imágenes... '
                                               f'{HELP_ARTICLE_MESSAGE}', use_aliases=True)
 
-SINGLE_USER_WITH_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @{} contiene textos alternativos '
+SINGLE_USER_WITH_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @ {} contiene textos alternativos '
                                                 '(alt_text) para describir todas sus imágenes :muscle::muscle::muscle:',
                                                 use_aliases=True)
 
