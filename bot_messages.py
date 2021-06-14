@@ -18,8 +18,8 @@ AUTO_REPLY_NO_DM_NO_ALT_TEXT = emoji.emojize(':point_up: Este tweet sería más 
                                              use_aliases=True)
 
 # Reply messages to report use case
-SINGLE_USER_REPORT = '@{screen_name}: usó alt_texts en {score:.1f} % de imágenes, {n_images} analizadas'
-SINGLE_USER_NO_IMAGES_FOUND_REPORT = '@{screen_name}: no encontré tweets con imágenes.'
+SINGLE_USER_REPORT = '@ {screen_name}: usó alt_texts en {score:.1f} % de imágenes, {n_images} analizadas'
+SINGLE_USER_NO_IMAGES_FOUND_REPORT = '@ {screen_name}: no encontré tweets con imágenes.'
 HEADER_REPORT = emoji.emojize(':mag_right::memo: Aquí está tu reporte :nerd_face::point_down:', use_aliases=True)
 FOOTER_REPORT = f'+info acá https://rola93.github.io/altBotUY'
 
@@ -32,11 +32,11 @@ SINGLE_USER_WITH_ALT_TEXT_QUERY = emoji.emojize(':point_up:️ Ese tweet de @{} 
                                                 '(alt_text) para describir todas sus imágenes :muscle::muscle::muscle:',
                                                 use_aliases=True)
 
-AUTO_REPLY_NO_IMAGES_FOUND = emoji.emojize(':point_up:️ Ese tweet de @{} no contiene imágenes...  '
+AUTO_REPLY_NO_IMAGES_FOUND = emoji.emojize(':point_up:️ Ese tweet de @ {} no contiene imágenes...  '
                                            'Por ahora no chequeo otros contenidos (GIFs, videos, links externos) '
                                            ':grin:.', use_aliases=True)
 
-HEADER_ALT_TEXT_USER_PROVIDED = '@{screen_name} describió así las imágenes:'
+HEADER_ALT_TEXT_USER_PROVIDED = '@ {screen_name} describió así las imágenes:'
 FIRST_ALT_TEXT_USER_PROVIDED = '1: {alt_text}'
 SECOND_ALT_TEXT_USER_PROVIDED = '2: {alt_text}'
 THIRD_ALT_TEXT_USER_PROVIDED = '3: {alt_text}'
@@ -45,11 +45,11 @@ ALL_ALT_TEXT_USER_PROVIDED = [FIRST_ALT_TEXT_USER_PROVIDED, SECOND_ALT_TEXT_USER
                           FOURTH_ALT_TEXT_USER_PROVIDED]
 
 # Reply messages to periodic report use case
-SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @{screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @ {screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
-SINGLE_USER_REPORT_SECOND_PLACE = emoji.emojize(':two: @{screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_SECOND_PLACE = emoji.emojize(':two: @ {screen_name}: {n_alts:d} '
                                                 'imágenes ({score:.1f} %)', use_aliases=True)
-SINGLE_USER_REPORT_THIRD_PLACE = emoji.emojize(':three: @{screen_name}: {n_alts:d} '
+SINGLE_USER_REPORT_THIRD_PLACE = emoji.emojize(':three: @ {screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
 
 HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top-3 de amigos que usan alt_texts '
