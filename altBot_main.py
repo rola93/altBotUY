@@ -4,6 +4,7 @@ import os
 import re
 import time
 from datetime import datetime, timedelta
+from logging.handlers import TimedRotatingFileHandler
 from typing import List, Optional, Set, Union, Tuple
 
 import tweepy
@@ -12,7 +13,8 @@ from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
     SINGLE_USER_NO_IMAGES_FOUND_REPORT, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY,\
     HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY, SINGLE_USER_REPORT_FIRST_PLACE, \
     SINGLE_USER_REPORT_SECOND_PLACE, SINGLE_USER_REPORT_THIRD_PLACE, HEADER_REPORT_PERIODIC_FRIENDS, \
-    HEADER_REPORT_PERIODIC_FOLLOWERS, FOOTER_REPORT_PERIODIC, ALL_ALT_TEXT_USER_PROVIDED, HEADER_ALT_TEXT_USER_PROVIDED
+    HEADER_REPORT_PERIODIC_FOLLOWERS, FOOTER_REPORT_PERIODIC, ALL_ALT_TEXT_USER_PROVIDED, HEADER_ALT_TEXT_USER_PROVIDED, \
+    SUMMARY_REPORT
 
 from data_access_layer.data_access import DBAccess
 
@@ -24,7 +26,7 @@ except Exception as e:
 
 from settings import ACCEPT_DM_TWEET_ID, LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, \
     MAX_RECONNECTION_ATTEMPTS, MAX_MENTIONS_TO_PROCESS, MAINTEINER_NAME, MAINTAEINER_ID, LAST_N_MENTIONS,\
-    MAX_DAYS_TO_REFRESH_TWEETS, LAST_N_TWEETS_MAX
+    MAX_DAYS_TO_REFRESH_TWEETS, LAST_N_TWEETS_MAX, MAX_CHARS_IN_TWEET
 
 
 class AltBot:
@@ -233,6 +235,8 @@ class AltBot:
         :return: None
         """
 
+        thread_message = self.collapse_text_in_tweets(thread_message)
+
         for single_message in thread_message:
             msg = f'@{reply_to} {single_message}'
 
@@ -333,12 +337,11 @@ class AltBot:
     # region: main logic
 
     @staticmethod
-    def split_text_in_tweets(text: str, max_len: int = 250) -> List[str]:
+    def split_text_in_tweets(text: str) -> List[str]:
         """
-        Split the given string text into a list of strings where each string is shorter than max_len
+        Split the given string text into a list of strings where each string is shorter than MAX_CHARS_IN_TWEET
         :param text: text to be split
-        :param max_len: max number of char for each string in result
-        :return: list of strings where each of them is shorter than specified
+        :return: list of strings where each of them is shorter than MAX_CHARS_IN_TWEET
         """
         result = []
 
@@ -348,7 +351,7 @@ class AltBot:
         for i, word in enumerate(words):
             n += len(word) + 1  # +1 to consider spaces
 
-            if n >= max_len:
+            if n >= MAX_CHARS_IN_TWEET:
                 result.append(' '.join(words[j:i]))
                 j = i
                 n = len(word)
@@ -356,7 +359,37 @@ class AltBot:
         result.append(' '.join(words[j:]))
 
         assert sum([len(m.replace(' ', '')) for m in result]) == len(text.replace(' ', ''))
-        assert all([len(m) <= max_len for m in result])
+        assert all([len(m) <= MAX_CHARS_IN_TWEET for m in result])
+
+        return result
+
+    @staticmethod
+    def collapse_text_in_tweets(tweets: List[str]) -> List[str]:
+        """
+        Collapse the given list of string text into a shorter list of strings
+        where each string is shorter than MAX_CHARS_IN_TWEET
+        :param tweets: list of tweets (strings of len <= 280) to be joined
+        :return: list of strings where each of them is shorter than MAX_CHARS_IN_TWEET
+        """
+        result = []
+
+        n = 0
+        j = 0
+        for i, tweet in enumerate(tweets):
+            n += len(tweet) + 1  # +1 to consider '\n'
+
+            if n >= MAX_CHARS_IN_TWEET:
+                result.append('\n'.join(tweets[j:i]))
+                j = i
+                n = len(tweet)
+
+        result.append('\n'.join(tweets[j:]))
+
+        # remove empty results; usually when first
+        result = [x for x in result if len(x) > 0]
+
+        assert len(result) <= len(tweets)
+        assert all([len(m) <= MAX_CHARS_IN_TWEET for m in result])
 
         return result
 
@@ -963,7 +996,9 @@ class AltBot:
             raise Exception(error)
 
         start_date = (datetime.now() - timedelta(days=31)).strftime("%Y-%m-%d %H:%M:%S")
-        to_report = self.db.get_top_alt_text_users(friends=friends, followers=followers, start_date=start_date)
+        to_report, n_accounts, n_accounts_some_texts = self.db.get_top_alt_text_users(friends=friends,
+                                                                                      followers=followers,
+                                                                                      start_date=start_date)
 
         if len(to_report) == 0:
             logging.warning(f'Empty report found for friends={friends}, followers={followers}, start_date={start_date}')
@@ -980,6 +1015,9 @@ class AltBot:
             to_messages.append(template.format(screen_name=report['screen_name'], n_alts=int(report['alt_text_images']),
                                                score=report['portion']*100))
 
+        to_messages.append(SUMMARY_REPORT.format(n_accounts_some_texts=n_accounts_some_texts,
+                                                 n_accounts=n_accounts,
+                                                 portion=100*n_accounts_some_texts/n_accounts))
         to_messages.append(FOOTER_REPORT_PERIODIC)
 
         msg = '\n'.join(to_messages)
@@ -1024,10 +1062,13 @@ class AltBot:
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=LOG_LEVEL, filename=LOG_FILENAME,
+    handler = TimedRotatingFileHandler(LOG_FILENAME, when='D', backupCount=7)
+
+    logging.basicConfig(level=LOG_LEVEL,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                        datefmt='%y-%m-%d %H:%M:%S'
-                        )
+                        datefmt='%y-%m-%d %H:%M:%S', handlers=[handler])
+
+    logging.debug('AltBot is running...')
 
     parser = argparse.ArgumentParser(description="This script runs AltBotUY.")
     parser.add_argument("-u", "--update-users", help="Update the local list of followers and friends.",

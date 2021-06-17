@@ -230,7 +230,7 @@ class DBAccess:
             return -1, -1
 
     def get_top_alt_text_users(self, followers: bool = False, friends: bool = False, start_date: str = INIT_SYSTEM_DATE,
-                               top_n: int = 3) -> List[Dict[str, Union[int, float, str]]]:
+                               top_n: int = 3) -> Tuple[List[Dict[str, Union[int, float, str]]], int, int]:
 
         # screen_name, user_id, n_images, alt_score, processed_at, friend, follower
         df = pd.DataFrame(
@@ -241,14 +241,18 @@ class DBAccess:
 
         if len(df) == 0:
             # if no results were read, return empty list
-            return []
+            return [], -1, -1
 
         # compute number of images with alt text
         df['alt_text_images'] = df['n_images'] * df['alt_score']
 
         # group records by user_id, summing records
-        df_result = df.groupby(['user_id', 'screen_name'])[['alt_text_images', 'n_images']].sum().sort_values(
-            ['alt_text_images', 'n_images'], ascending=False).head(top_n)
+        df_grouped = df.groupby(['user_id', 'screen_name'])[['alt_text_images', 'n_images']].sum().sort_values(
+            ['alt_text_images', 'n_images'], ascending=False)
+
+        n_accounts = len(df_grouped['alt_text_images'].values)
+        n_accounts_some_texts = len(df_grouped['alt_text_images'].values.nonzero()[0])
+        df_result = df_grouped.head(top_n)
 
         result = []
 
@@ -261,7 +265,7 @@ class DBAccess:
                 'portion': row['alt_text_images']/row['n_images']
             })
 
-        return result
+        return result, n_accounts, n_accounts_some_texts
 
     def update_user_alt_text_info(self, tweet_id: str, user_alt_text_1: str = None, user_alt_text_2: str = None,
                                   user_alt_text_3: str = None, user_alt_text_4: str = None):
@@ -311,10 +315,10 @@ if __name__ == '__main__':
 
     db = DBAccess(f'../{DB_FILE}')
     db.add_alt_text_columns_if_needed()
-    print(db.get_alt_text_info_from_tweet('1383088783361458176'))
+    # print(db.get_alt_text_info_from_tweet('1383088783361458176'))
 
 
-    # print(db.get_top_alt_text_users(start_date='2021-05-01'))
+    print(db.get_top_alt_text_users(start_date='2020-05-01', followers=True))
     # print(db.get_top_alt_text_users(start_date='2021-05-10'))
     # print(db.get_top_alt_text_users(start_date='2021-05-15'))
     # print(db.get_top_alt_text_users(start_date='2021-05-17'))
