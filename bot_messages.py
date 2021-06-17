@@ -57,6 +57,6 @@ HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top
 
 HEADER_REPORT_PERIODIC_FOLLOWERS = emoji.emojize(':mag_right::memo: Este es el Top-3 de seguidores que usan alt_texts '
                                                  'en el último mes :nerd_face::point_down:', use_aliases=True)
-SUMMARY_REPORT = '{n_accounts_some_texts} cuentas han usado algún texto alternativo en este tiempo,' \
-                 ' de {n_accounts} analizadas ({portion:4.1f}%)'
+SUMMARY_REPORT = '{n_accounts_some_texts} cuentas han usado algún texto alternativo en ese tiempo,' \
+                 ' {n_accounts} analizadas ({portion:4.1f}%)'
 FOOTER_REPORT_PERIODIC = f'+info https://rola93.github.io/altBotUY'
