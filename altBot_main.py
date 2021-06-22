@@ -240,12 +240,12 @@ class AltBot:
         logging.debug(f'Collapsed thread now contains {len(thread_message)} messages...')
 
         for single_message in thread_message:
-            # msg = f'@{reply_to} {single_message}'
+            msg = single_message  # f'@{reply_to} {single_message}'
 
             if self.live:
                 try:
                     status = self.api.update_status(
-                        status=single_message,
+                        status=msg,
                         in_reply_to_status_id=tweet_id,
                         auto_populate_reply_metadata=True
                     )
