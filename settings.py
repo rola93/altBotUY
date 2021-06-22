@@ -20,7 +20,7 @@ LAST_N_TWEETS_MAX = 200
 LAST_N_MENTIONS = 100
 
 LOG_LEVEL = logging.DEBUG
-LOG_FILENAME = 'log/alt-bot-logs.log'
+LOG_FILENAME = 'log/alt-bot.log'
 
 DB_FILE = 'data_access_layer/.alt_bot_data.db'
 
