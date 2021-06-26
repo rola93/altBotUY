@@ -150,6 +150,10 @@ Contiene instruccciones y requerimientos para ejecutar el bot, así como la desc
 
 # Proyectos relacionados:
 
+[@TextoAlt](https://twitter.com/TextoAlt) es una cuenta de Twitter en español, manejada por un humano, 
+que busca crear historias alternativas a partir de tweets que contengan una imagen no accesible (sin alt_texts). 
+Un ejemplo es [esta graciosa historia](https://twitter.com/TextoAlt/status/1408468153533972492) de Fran y Firulais.
+
 [@get_altText](https://twitter.com/get_altText) es un bot que lee los alt_text provistos por los usuarios, en forma de tweets: lo citas en respuesta a una imagen, y si tiene alt_text, responde con él. Esto hace que sea agnóstico respecto al idioma: siempre contesta con el texto dadpo por el usuario.
 
 [@ImageAltText](https://twitter.com/ImageAltText) es otro bots de 
