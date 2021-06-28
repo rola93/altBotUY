@@ -1,4 +1,5 @@
 import logging
+import os
 
 # Tweeter credentials must be obtained from tweeter;
 # checkout this: https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials
@@ -35,3 +36,12 @@ ACCEPT_DM_TWEET_ID = 1385971762819706888
 INIT_SYSTEM_DATE = '2021-01-01'
 
 MAX_CHARS_IN_TWEET = 280
+
+IMAGES_DIR = 'temporal_images'
+FNAME_TEMPLATE = 'image_{idx:d}.jpg'
+
+os.makedirs(IMAGES_DIR, exist_ok=True)
+
+# Captioning settings
+LANGUAGE = 'spa'
+

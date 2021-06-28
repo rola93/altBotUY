@@ -26,3 +26,10 @@ tweepy==3.10.0
 urllib3==1.26.4
 wcwidth==0.2.5
 emoji==1.2.0
+greenlet==1.0.0
+importlib-metadata==4.0.0
+opencv-python==4.5.1.48
+Pillow==8.2.0
+pytesseract==0.3.7
+typing-extensions==3.7.4.3
+zipp==3.4.1

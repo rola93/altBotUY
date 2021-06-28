@@ -7,15 +7,20 @@ from datetime import datetime, timedelta
 from logging.handlers import TimedRotatingFileHandler
 from typing import List, Optional, Set, Union, Tuple
 
+import random
+
 import tweepy
+import requests
+from http import HTTPStatus
 
 from bot_messages import AUTO_DM_NO_ALT_TEXT, AUTO_REPLY_NO_DM_NO_ALT_TEXT, \
     SINGLE_USER_NO_IMAGES_FOUND_REPORT, SINGLE_USER_REPORT, AUTO_REPLY_NO_IMAGES_FOUND, SINGLE_USER_WITH_ALT_TEXT_QUERY,\
     HEADER_REPORT, FOOTER_REPORT, SINGLE_USER_NO_ALT_TEXT_QUERY, SINGLE_USER_REPORT_FIRST_PLACE, \
     SINGLE_USER_REPORT_SECOND_PLACE, SINGLE_USER_REPORT_THIRD_PLACE, HEADER_REPORT_PERIODIC_FRIENDS, \
     HEADER_REPORT_PERIODIC_FOLLOWERS, FOOTER_REPORT_PERIODIC, ALL_ALT_TEXT_USER_PROVIDED, HEADER_ALT_TEXT_USER_PROVIDED, \
-    SUMMARY_REPORT
+    SUMMARY_REPORT, HEADER_ALT_TEXT_BOT_PROVIDED
 
+from captioning.captioner_factory import get_captioner, TESSERACT_ID
 from data_access_layer.data_access import DBAccess
 
 try:
@@ -26,7 +31,7 @@ except Exception as e:
 
 from settings import ACCEPT_DM_TWEET_ID, LOG_LEVEL, LOG_FILENAME, LAST_N_TWEETS, DB_FILE, ALT_BOT_NAME, \
     MAX_RECONNECTION_ATTEMPTS, MAX_MENTIONS_TO_PROCESS, MAINTEINER_NAME, MAINTAEINER_ID, LAST_N_MENTIONS,\
-    MAX_DAYS_TO_REFRESH_TWEETS, LAST_N_TWEETS_MAX, MAX_CHARS_IN_TWEET
+    MAX_DAYS_TO_REFRESH_TWEETS, LAST_N_TWEETS_MAX, MAX_CHARS_IN_TWEET, IMAGES_DIR, FNAME_TEMPLATE
 
 
 class AltBot:
@@ -51,6 +56,8 @@ class AltBot:
 
         self.connect_api()
         self.load_alt_bot_user()
+
+        self.captioner = get_captioner(TESSERACT_ID)
 
     # region: Tweeter API interaction
     def connect_api(self) -> None:
@@ -235,13 +242,14 @@ class AltBot:
         :return: None
         """
 
+        print('='*60)
+        print(f'Collapse thread with {len(thread_message)} messages...')
         logging.debug(f'Collapse thread with {len(thread_message)} messages...')
         thread_message = self.collapse_text_in_tweets(thread_message)
         logging.debug(f'Collapsed thread now contains {len(thread_message)} messages...')
+        print(f'Collapsed thread now contains {len(thread_message)} messages...')
 
-        for single_message in thread_message:
-            msg = single_message  # f'@{reply_to} {single_message}'
-
+        for msg in thread_message:
             if self.live:
                 try:
                     status = self.api.update_status(
@@ -254,6 +262,8 @@ class AltBot:
                     logging.error(f'Can not send tweet to {reply_to} in reply '
                                   f'to {self.get_tweet_url(reply_to, tweet_id)}: {tw_error}')
             logging.debug(
+                f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
+            print(
                 f'[live={self.live}] - reply tweet to {tweet_id} in {len(msg)} chars: [{msg}]'.replace("\n", ";"))
 
     def write_tweet(self, message: str) -> None:
@@ -337,7 +347,35 @@ class AltBot:
 
     # endregion
 
-    # region: main logic
+    # region: utils
+    @staticmethod
+    def download_image(url: str, idx: int) -> bool:
+        """
+        download image from url and store it in IMAGES_DIR/{fname}.{ext}
+        :param url: image url
+        :param idx: index of the image to download
+        :return: flag indicating whether or not everything went ok.
+        """
+
+        ok = False
+        response = requests.get(url, stream=True)
+
+        if response.status_code == HTTPStatus.OK:
+            with open(os.path.join(IMAGES_DIR, FNAME_TEMPLATE.format(idx=idx)), 'wb') as f:
+                f.write(response.content)
+
+            with open(os.path.join(IMAGES_DIR, f'{random.randint(0,100000)}'+FNAME_TEMPLATE.format(idx=idx)), 'wb') as f:
+                f.write(response.content)
+            ok = True
+
+        return ok
+
+    @staticmethod
+    def clean_images_tmp_dir() -> None:
+        file_names = sorted(os.listdir(IMAGES_DIR))
+        logging.debug(f'Removing {len(file_names)} files from {IMAGES_DIR} ({";".join(file_names)})')
+        # for fname in file_names:
+        #     os.remove(os.path.join(IMAGES_DIR, fname))
 
     @staticmethod
     def split_text_in_tweets(text: str) -> List[str]:
@@ -395,6 +433,9 @@ class AltBot:
         assert all([len(m) <= MAX_CHARS_IN_TWEET for m in result])
 
         return result
+    # endregion
+
+    # region: main logic
 
     def update_followers_if_needed(self, needed: bool) -> None:
         """
@@ -482,10 +523,11 @@ class AltBot:
         """
         return f'https://twitter.com/{user_screen_name}/status/{tweet_id}'
 
-    def get_alt_text(self, tweet_id: str) -> Optional[List[Union[str, None]]]:
+    def get_alt_text(self, tweet_id: str, download_images: bool = False) -> Optional[List[Union[str, None]]]:
         """
-        This method gets back alt_text from the given tweet_id
+        This method gets back alt_text from the given tweet_id, and download its images if required
         :param tweet_id: str identifying a tweet
+        :param download_images: whether or not to download images
         :return: if the tweet does not contain media, returns None
                  if the tweet contain images, returns a list with.
                      Each element of the list contains a string with the alt_text if available,
@@ -497,8 +539,16 @@ class AltBot:
 
         if hasattr(tweet, 'extended_entities'):
             if len(tweet.extended_entities['media']) > 0:
-                result = [media['ext_alt_text'] for media in tweet.extended_entities['media'] if
-                          media['type'] == 'photo']
+                # use idx instead of enumerate since not all will be processed
+                idx = 0
+                result = []
+                for media in tweet.extended_entities['media']:
+                    if media['type'] == 'photo':
+                        result.append(media['ext_alt_text'])
+                        if download_images:
+                            AltBot.download_image(media['media_url_https'], idx)
+                            idx += 1
+
                 logging.debug(f'Tweet {tweet_id} contains extended_entities and media: {result}.')
             else:
                 # This is a tweet without media, not sure if this can happen
@@ -665,7 +715,12 @@ class AltBot:
         tweet_to_reply_screen_name = tweet.author.screen_name  # str
         tweet_to_reply_id = tweet.id_str  # type: str
 
+        # make sure temporal directory is empty
+        AltBot.clean_images_tmp_dir()
+
+        # TODO: remove auto follow
         if self.db.tweet_was_processed(str(tweet_to_process_tweet_id)):
+
             logging.debug(f'This twit was already processed: {tweet_to_process_url} ; lets check on DB')
             # we already processed this tweet; take results from DB
             alt_text_info = self.db.get_alt_text_info_from_tweet(str(tweet_to_process_tweet_id))
@@ -679,40 +734,55 @@ class AltBot:
 
                 alt_text_score = alt_text_info['alt_score']  # type: float
 
-                # The tweet contain images, if there were alt_text BUT we don't have them in our DB,
-                # then need to recover them
-                if alt_text_score > 0 and all([txt is None for txt in alt_text_info['user_alt_text']]):
+                # The tweet contain images.
+                # If there were alt_text BUT we don't have them in our DB, then need to recover them
+                # If bot_text was not computed, we also need to process it (no matter if user provided alt_texts or not)
+                not_include_user_alt_text = all([txt is None for txt in alt_text_info['user_alt_text']])
+                not_include_bot_alt_text = all([txt is None for txt in alt_text_info['bot_alt_text']])
+
+                if (alt_text_score > 0 and not_include_user_alt_text) or not_include_bot_alt_text:
                     # the tweet contain images with alt_text but we didn't have it, so lets download it and check
-                    alt_text_info['user_alt_text'] = self.get_alt_text(str(tweet_to_process_tweet_id))
-                    update_params = {f'user_alt_text_{i}': txt for i, txt in
+                    alt_text_info['user_alt_text'] = self.get_alt_text(str(tweet_to_process_tweet_id), download_images=True)
+                    alt_text_info['bot_alt_text'] = [self.captioner.caption_image(idx) for idx in range(len(alt_text_info['user_alt_text']))]
+                    update_params = {f'user_alt_text_{idx}': txt for idx, txt in
                                      enumerate(alt_text_info['user_alt_text'], start=1)}
+                    for idx, txt in enumerate(alt_text_info['user_alt_text'], start=1):
+                        update_params[f'bot_alt_text_{idx}'] = txt
+
                     self.db.update_user_alt_text_info(str(tweet_to_process_tweet_id), **update_params)
 
                 if alt_text_score > 0:
                     # there are some alt_texts, let's write the thread as a list of messages
-                    alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+                    alt_text_user_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
                     for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_text_info['user_alt_text']):
                         if text is None:
                             continue
                         # alt text may contain up to 1000 chars, so we may need to split each into several tweets
-                        alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+                        alt_text_user_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
                 else:
                     # no alt_texts were provided
-                    alt_text_messages = []
+                    alt_text_user_messages = []
+
+                alt_text_bot_messages = [
+                    HEADER_ALT_TEXT_BOT_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+
+                for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_text_info['bot_alt_text']):
+                    # alt text may contain up to 1000 chars, so we may need to split each into several tweets
+                    alt_text_bot_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
 
                 if alt_text_score < 1:
                     logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
-                    alt_text_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
-                        tweet_to_process_screen_name)] + alt_text_messages
-                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+                    alt_text_user_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_user_messages + alt_text_bot_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_user_messages, tweet_to_reply_id)
                 else:
                     logging.debug(f'Tweet being reply was already processed and ALL images contain alt_text')
-                    alt_text_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
-                        tweet_to_process_screen_name)] + alt_text_messages
-                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+                    alt_text_user_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_user_messages + alt_text_bot_messages
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_user_messages, tweet_to_reply_id)
         else:
             # tweet is not in our DB; we need to get it from the API and process accordingly
-            alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
+            alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id), download_images=True)
 
             if alt_texts is None or not alt_texts:
                 # skip since the tweet does not contain images
@@ -723,28 +793,42 @@ class AltBot:
             else:
 
                 alt_text_score = self.compute_alt_text_score(alt_texts)
-                alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+                alt_text_user_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+
                 for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_texts):
                     if text is None:
                         continue
                     # alt text may contain up to 1000 chars, so we may need to split each into several tweets
-                    alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+                    alt_text_user_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+
+                # perform captioning over given images
+                alt_text_bot = [HEADER_ALT_TEXT_BOT_PROVIDED]
+                bot_generated_text = []  # type: List[str]
+                for template, idx in zip(ALL_ALT_TEXT_USER_PROVIDED, range(len(alt_texts))):
+                    text = self.captioner.caption_image(idx)
+                    bot_generated_text.append(text)
+                    alt_text_bot.extend(self.split_text_in_tweets(template.format(alt_text=text)))
 
                 if alt_text_score == 1:
                     # all of the images contains alt_text, let's like it
                     logging.debug(f'All images in tweet contain alt texts: {tweet_to_process_url}')
                     self.fav_tweet(str(tweet_to_process_tweet_id))
-                    alt_text_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
-                        tweet_to_process_screen_name)] + alt_text_messages
-                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+                    alt_text_user_messages = [SINGLE_USER_WITH_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_user_messages + alt_text_bot
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_user_messages, tweet_to_reply_id)
                 else:
                     # some images with out alt_text; reply the tweet with proper message
                     logging.debug(f'Some images ({alt_text_score * 100} %) in tweet does not contain '
                                   f'alt texts: {tweet_to_process_url}')
 
-                    alt_text_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
-                        tweet_to_process_screen_name)] + alt_text_messages
-                    self.reply_thread(tweet_to_reply_screen_name, alt_text_messages, tweet_to_reply_id)
+                    if alt_text_score == 0:
+                        # no alt_text were provided, so, restart the alt_text_messages list
+                        # this removes the message HEADER_ALT_TEXT_USER_PROVIDED from list
+                        alt_text_user_messages = list()
+
+                    alt_text_user_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
+                        tweet_to_process_screen_name)] + alt_text_user_messages + alt_text_bot
+                    self.reply_thread(tweet_to_reply_screen_name, alt_text_user_messages, tweet_to_reply_id)
 
                     # also reply to the author if needed
                     if self.db.is_allowed_to_dm(tweet_to_process_user_id) and self.db.is_follower(
@@ -753,15 +837,18 @@ class AltBot:
                         self.direct_message(tweet_to_process_screen_name, tweet_to_process_user_id,
                                             AUTO_REPLY_NO_DM_NO_ALT_TEXT.format(tweet_to_process_url))
 
-                # Compute user_alt_text_X as param to save each alt_text
-                user_alt_texts_params = {f'user_alt_text_{idx}': text for idx, text in enumerate(alt_texts, start=1)}
+                # Compute user_alt_text_X as param to save each alt_text provided by the user
+                alt_texts_params = {f'user_alt_text_{idx}': text for idx, text in enumerate(alt_texts, start=1)}
+                # Compute bot_alt_text_X as param to save each alt_text provided by the bot
+                for idx, text in enumerate(bot_generated_text, start=1):
+                    alt_texts_params[f'bot_alt_text_{idx}'] = text
 
                 # save the processed tweet as processed with images data
                 self.db.save_processed_tweet_with_with_alt_text_info(tweet_to_process_screen_name,
                                                                      tweet_to_process_user_id,
                                                                      str(tweet_to_process_tweet_id),
                                                                      len(alt_texts), alt_text_score,
-                                                                     **user_alt_texts_params)
+                                                                     **alt_texts_params)
 
         # save the processed tweet as processed if needed; notice that the tweet may be already processed
         # happens when user A tweets an image,
@@ -909,8 +996,9 @@ class AltBot:
             if tweet.id > next_last_mention_id:
                 next_last_mention_id = tweet.id
 
-        logging.info(f'[USE CASE] Processing original tweets mentioning the bot')
-        self.process_original_tweets_mentioning_bot(original_tweets_mentioning_bot)
+        # logging.info(f'[USE CASE] Processing original tweets mentioning the bot')
+        # self.process_original_tweets_mentioning_bot(original_tweets_mentioning_bot)
+        # TODO: remove this comment
 
         logging.info(f'[USE CASE] Processing tweets that mention the bot AND reply to other tweets')
         self.process_tweets_in_reply_to_other_tweet(tweets_in_reply_to_other_mentioning_bot)

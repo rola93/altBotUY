@@ -103,12 +103,13 @@ class DBAccess:
         :param do_not_fail: do not fail if tweet_id already processed
         :return: None
         """
-        if do_not_fail:
-            # this query ignores the insertion if twet was already in table
-            self.connection.execute(db_queries.SAVE_PROCESSED_TWEET_NO_FAIL, (tweet_id,))
-        else:
-            self.connection.execute(db_queries.SAVE_PROCESSED_TWEET, (tweet_id,))
-        self.connection.commit()
+        # if do_not_fail:
+        #     # this query ignores the insertion if twet was already in table
+        #     self.connection.execute(db_queries.SAVE_PROCESSED_TWEET_NO_FAIL, (tweet_id,))
+        # else:
+        #     self.connection.execute(db_queries.SAVE_PROCESSED_TWEET, (tweet_id,))
+        # self.connection.commit()
+        return
 
     def tweet_was_processed(self, tweet_id: str) -> bool:
         """
@@ -116,8 +117,9 @@ class DBAccess:
         :param tweet_id: id of the tweet to be checked
         :return: True iff the tweet already exist on db
         """
-        res = self.connection.execute(db_queries.CHECK_TWEET_PROCESSED, (tweet_id,)).fetchone()[0]
-        return bool(res)
+        # res = self.connection.execute(db_queries.CHECK_TWEET_PROCESSED, (tweet_id,)).fetchone()[0]
+        # return bool(res)
+        return False
 
     def is_follower(self, user_id) -> bool:
         res = self.connection.execute(db_queries.CHECK_FOLLOWER, (user_id,)).fetchone()[0]
@@ -270,16 +272,18 @@ class DBAccess:
     def update_user_alt_text_info(self, tweet_id: str, user_alt_text_1: str = None, user_alt_text_2: str = None,
                                   user_alt_text_3: str = None, user_alt_text_4: str = None):
 
-        self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
-                                (user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4, tweet_id))
-        self.connection.commit()
+        # self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
+        #                         (user_alt_text_1, user_alt_text_2, user_alt_text_3, user_alt_text_4, tweet_id))
+        # self.connection.commit()
+        return
 
     def update_bot_alt_text_info(self, tweet_id: str, bot_alt_text_1: str = None, bot_alt_text_2: str = None,
                                   bot_alt_text_3: str = None, bot_alt_text_4: str = None):
 
-        self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
-                                (bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4, tweet_id))
-        self.connection.commit()
+        # self.connection.execute(db_queries.UPDATE_USER_ALT_TEXT_INFO,
+        #                         (bot_alt_text_1, bot_alt_text_2, bot_alt_text_3, bot_alt_text_4, tweet_id))
+        # self.connection.commit()
+        return
 
     def get_alt_score_from_tweet(self, tweet_id: str) -> Optional[float]:
         query_result = self.connection.execute(db_queries.GET_ALT_SCORE_FOR_PROCESSED_TWEET, (tweet_id,)).fetchone()
@@ -307,8 +311,9 @@ class DBAccess:
         return result
 
     def update_last_mention_id(self, last_mention_id: int) -> None:
-        self.connection.execute(db_queries.UPDATE_SETTING, (last_mention_id, DBAccess.last_mention_key_setting))
-        self.connection.commit()
+        return
+        # self.connection.execute(db_queries.UPDATE_SETTING, (last_mention_id, DBAccess.last_mention_key_setting))
+        # self.connection.commit()
 
 
 if __name__ == '__main__':

@@ -44,6 +44,8 @@ FOURTH_ALT_TEXT_USER_PROVIDED = '4: {alt_text}'
 ALL_ALT_TEXT_USER_PROVIDED = [FIRST_ALT_TEXT_USER_PROVIDED, SECOND_ALT_TEXT_USER_PROVIDED, THIRD_ALT_TEXT_USER_PROVIDED,
                           FOURTH_ALT_TEXT_USER_PROVIDED]
 
+HEADER_ALT_TEXT_BOT_PROVIDED = 'Creo que las imágenes muestran lo siguiente:'
+
 # Reply messages to periodic report use case
 SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
@@ -60,3 +62,5 @@ HEADER_REPORT_PERIODIC_FOLLOWERS = emoji.emojize(':mag_right::memo: Este es el T
 SUMMARY_REPORT = '{n_accounts_some_texts} cuentas han usado algún texto alternativo en ese tiempo,' \
                  ' {n_accounts} analizadas ({portion:4.1f}%)'
 FOOTER_REPORT_PERIODIC = f'+info https://rola93.github.io/altBotUY'
+
+OCR_ALT_TEXT_NOT_FOUND = emoji.emojize(':disappointed_face: No veo texto en esa imagen. Lo siento ', use_aliases=True)
