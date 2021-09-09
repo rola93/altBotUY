@@ -183,8 +183,6 @@ class AltBot:
             tweets_ids = [tweet.id_str for tweet in results]
         except tweepy.error.TweepError as tpe:
             logging.error(f'can not extract tweets for {screen_name}: {tpe}')
-            # start to follow it trying to unlock if user accepts
-            self.follow_user(screen_name)
             tweets_ids = []
 
         return tweets_ids
@@ -1010,22 +1008,20 @@ class AltBot:
                      SINGLE_USER_REPORT_THIRD_PLACE]
 
         if friends:
-            to_messages = [HEADER_REPORT_PERIODIC_FRIENDS]
+            report_messages = [HEADER_REPORT_PERIODIC_FRIENDS]
         else:
-            to_messages = [HEADER_REPORT_PERIODIC_FOLLOWERS]
+            report_messages = [HEADER_REPORT_PERIODIC_FOLLOWERS]
 
         for report, template in zip(to_report, templates):
-            to_messages.append(template.format(screen_name=report['screen_name'], n_alts=int(report['alt_text_images']),
+            report_messages.append(template.format(screen_name=report['screen_name'], n_alts=int(report['alt_text_images']),
                                                score=report['portion']*100))
 
-        to_messages.append(SUMMARY_REPORT.format(n_accounts_some_texts=n_accounts_some_texts,
+        report_messages.append(SUMMARY_REPORT.format(n_accounts_some_texts=n_accounts_some_texts,
                                                  n_accounts=n_accounts,
                                                  portion=100*n_accounts_some_texts/n_accounts))
-        to_messages.append(FOOTER_REPORT_PERIODIC)
+        report_messages.append(FOOTER_REPORT_PERIODIC)
 
-        msg = '\n'.join(to_messages)
-
-        self.write_tweet(msg)
+        self.reply_thread(self.alt_bot_user, report_messages, None)
 
     def main(self, update_users: bool, msg_to_followers: Optional[str], watch_for_alt_text_usage_in_friends: bool,
              watch_for_alt_text_usage_in_followers: bool, process_mentions: bool, top_users: Optional[str]) -> None:
