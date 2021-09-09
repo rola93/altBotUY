@@ -52,11 +52,13 @@ SINGLE_USER_REPORT_SECOND_PLACE = emoji.emojize(':two: @{screen_name}: {n_alts:d
 SINGLE_USER_REPORT_THIRD_PLACE = emoji.emojize(':three: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
 
-HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top-3 de amigos que usan alt_texts '
+HEADER_REPORT_PERIODIC_FRIENDS = emoji.emojize(':mag_right::memo: Este es el Top-3 de amigos que usaron alt_texts '
                                                'en el último mes :nerd_face::point_down:', use_aliases=True)
 
-HEADER_REPORT_PERIODIC_FOLLOWERS = emoji.emojize(':mag_right::memo: Este es el Top-3 de seguidores que usan alt_texts '
-                                                 'en el último mes :nerd_face::point_down:', use_aliases=True)
+HEADER_REPORT_PERIODIC_FOLLOWERS = emoji.emojize(':mag_right::memo: Este es el Top-3 de seguidores que usaron '
+                                                 ' alt_texts en el último mes :nerd_face::point_down:',
+                                                 use_aliases=True)
+
 SUMMARY_REPORT = '{n_accounts_some_texts} cuentas han usado algún texto alternativo en ese tiempo,' \
                  ' {n_accounts} analizadas ({portion:4.1f}%)'
 FOOTER_REPORT_PERIODIC = f'+info https://rola93.github.io/altBotUY'
