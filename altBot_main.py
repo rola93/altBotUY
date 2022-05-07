@@ -103,7 +103,8 @@ class AltBot:
         :param tweet_id: id of the twet to be read from the API
         :return: tweet, as tweepy object
         """
-        status = self.api.get_status(tweet_id, include_ext_alt_text=True, include_entities=True, tweet_mode="extended")
+        status = self.api.get_status(tweet_id, include_ext_alt_text=True,
+                                         include_entities=True, tweet_mode="extended")
         return status
 
     def load_alt_bot_user(self):
@@ -480,7 +481,7 @@ class AltBot:
         """
         return f'https://twitter.com/{user_screen_name}/status/{tweet_id}'
 
-    def get_alt_text(self, tweet_id: str) -> Optional[List[Union[str, None]]]:
+    def get_alt_text(self, tweet_id: str) -> Union[List[Union[str, None]], int, None]:
         """
         This method gets back alt_text from the given tweet_id
         :param tweet_id: str identifying a tweet
@@ -489,9 +490,13 @@ class AltBot:
                      Each element of the list contains a string with the alt_text if available,
                      None otherwise.
                 Consider a single tweet may contain up to 4 images and each of them can not contain an alt_text.
+                if tweet can't be read, then return -1
         """
-
-        tweet = self.get_tweet(tweet_id)
+        try:
+            tweet = self.get_tweet(tweet_id)
+        except tweepy.TweepError as e:
+            logging.info(f'Can not read tweet {tweet_id}. Exception thrown {e}')
+            return -1
 
         if hasattr(tweet, 'extended_entities'):
             if len(tweet.extended_entities['media']) > 0:
@@ -548,6 +553,13 @@ class AltBot:
                 logging.info(f'Processing tweet {self.get_tweet_url(screen_name, tweet_id)}')
 
                 alt_texts = self.get_alt_text(tweet_id)
+
+                if alt_texts == -1:
+                    # the tweet could not be read
+                    logging.debug(f'This tweet can not be read by us: '
+                                  f'{self.get_tweet_url(screen_name, tweet_id)}')
+                    self.db.save_processed_tweet(tweet_id)
+                    continue
 
                 if alt_texts is None or not alt_texts:
                     # skip since the tweet does not contain images
@@ -682,23 +694,35 @@ class AltBot:
                 if alt_text_score > 0 and all([txt is None for txt in alt_text_info['user_alt_text']]):
                     # the tweet contain images with alt_text but we didn't have it, so lets download it and check
                     alt_text_info['user_alt_text'] = self.get_alt_text(str(tweet_to_process_tweet_id))
-                    update_params = {f'user_alt_text_{i}': txt for i, txt in
-                                     enumerate(alt_text_info['user_alt_text'], start=1)}
-                    self.db.update_user_alt_text_info(str(tweet_to_process_tweet_id), **update_params)
+
+                    if user_alt_text != -1:
+                        update_params = {f'user_alt_text_{i}': txt for i, txt in
+                                         enumerate(alt_text_info['user_alt_text'], start=1)}
+                        self.db.update_user_alt_text_info(str(tweet_to_process_tweet_id), **update_params)
 
                 if alt_text_score > 0:
-                    # there are some alt_texts, let's write the thread as a list of messages
-                    alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
-                    for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_text_info['user_alt_text']):
-                        if text is None:
-                            continue
-                        # alt text may contain up to 1000 chars, so we may need to split each into several tweets
-                        alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+
+                    if alt_text_info['user_alt_text'] != -1:
+                        # there are some alt_texts, let's write the thread as a list of messages
+                        alt_text_messages = [HEADER_ALT_TEXT_USER_PROVIDED.format(screen_name=tweet_to_process_screen_name)]
+                        for template, text in zip(ALL_ALT_TEXT_USER_PROVIDED, alt_text_info['user_alt_text']):
+                            if text is None:
+                                continue
+                            # alt text may contain up to 1000 chars, so we may need to split each into several tweets
+                            alt_text_messages.extend(self.split_text_in_tweets(template.format(alt_text=text)))
+                    else:
+                        # the tweet is not available. Only happens for old tweets in our DBs which
+                        # do not have its alt text on DB but when we tried to recover it, it was no more available
+                        alt_text_messages = [UNAVAILABLE_TWEET.format(screen_name=tweet_to_process_screen_name)]
                 else:
                     # no alt_texts were provided
                     alt_text_messages = []
 
-                if alt_text_score < 1:
+                if alt_text_info['user_alt_text'] == -1:
+                    self.reply_thread(tweet_to_reply_screen_name,
+                                      [UNAVAILABLE_TWEET.format(screen_name=tweet_to_process_screen_name)],
+                                      tweet_to_reply_id)
+                elif alt_text_score < 1:
                     logging.debug(f'Tweet being reply was already processed and NOT all images contain alt_text')
                     alt_text_messages = [SINGLE_USER_NO_ALT_TEXT_QUERY.format(
                         tweet_to_process_screen_name)] + alt_text_messages
@@ -712,7 +736,14 @@ class AltBot:
             # tweet is not in our DB; we need to get it from the API and process accordingly
             alt_texts = self.get_alt_text(str(tweet_to_process_tweet_id))
 
-            if alt_texts is None or not alt_texts:
+            if alt_texts==-1:
+                # can not download the tweet
+                logging.debug(f'This tweet is not interesting for us, we can not read it {tweet_to_process_url}')
+                self.db.save_processed_tweet(str(tweet_to_process_tweet_id))
+                self.reply(tweet_to_reply_screen_name,
+                           UNAVAILABLE_TWEET.format(screen_name=tweet_to_process_screen_name), tweet_to_reply_id)
+
+            elif alt_texts is None or not alt_texts:
                 # skip since the tweet does not contain images
                 logging.debug(f'This tweet is not interesting for us: {tweet_to_process_url}')
                 self.db.save_processed_tweet(str(tweet_to_process_tweet_id))

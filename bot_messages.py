@@ -44,6 +44,10 @@ FOURTH_ALT_TEXT_USER_PROVIDED = '4: {alt_text}'
 ALL_ALT_TEXT_USER_PROVIDED = [FIRST_ALT_TEXT_USER_PROVIDED, SECOND_ALT_TEXT_USER_PROVIDED, THIRD_ALT_TEXT_USER_PROVIDED,
                           FOURTH_ALT_TEXT_USER_PROVIDED]
 
+UNAVAILABLE_TWEET = emoji.emojize('Lamentablemente no puedo acceder al tweet de @ {screen_name}. '
+                                   'Puede que lo haya borrado, me haya bloqueado o sean tuits protegidos. '
+                                   ':disappointed_relieved:')
+
 # Reply messages to periodic report use case
 SINGLE_USER_REPORT_FIRST_PLACE = emoji.emojize(':one: @{screen_name}: {n_alts:d} '
                                                'imágenes ({score:.1f} %)', use_aliases=True)
